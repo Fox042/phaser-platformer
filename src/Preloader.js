@@ -29,9 +29,9 @@ TP.Preloader.resources = {
         ['tiles', 'src/tilemaps/tiles.png', 64, 64]
 	],
 	'spritesheet': [
-        ['button_start', 'img/button_start.png', 180, 180],
         ['player', 'img/spritesheets/player.png', 64, 64],
-        ['player_pet', 'img/spritesheets/player_pet.png', 32, 32]
+        ['player_pet', 'img/spritesheets/player_pet.png', 32, 32],
+        //['player_icons', 'img/spritesheets/player_icons.png', 64, 64],
 	]
 	//'audio': [
 	//	['audio-click', ['sfx/audio-button.m4a','sfx/audio-button.mp3','sfx/audio-button.ogg']]

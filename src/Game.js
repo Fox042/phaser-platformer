@@ -19,6 +19,7 @@ TP.Game.prototype = {
 
         // initiate game parts
         this.initTilemap();
+        this.initUI();
         this.initPlayer();
         
     },
@@ -55,13 +56,48 @@ TP.Game.prototype = {
         
     },
     
+        /****** UI ******/
+    initUI: function() {
+        
+        /*** add player's sprite, physics, collision etc ***/
+        //game.gamePausedGroup = this.add.group();
+        game.playerUIGroup = this.add.group();
+        
+        var style = { font: "bold 42px Arial", fill: "#fff", boundsAlignH: "center", boundsAlignV: "middle" };
+
+        /*  The Text is positioned at 0, 100
+        text = game.add.text(game.camera.width*0.5, 650, "test text", style);
+        text.setShadow(3, 3, 'rgba(0,0,0,0.5)', 2);
+        text.anchor.set(0.5,0.5);
+        text.fixedToCamera = true;*/
+        
+        player_W = game.add.sprite(game.camera.width*0.5, 650, 'player');
+        player_W.anchor.set(0.5,0.5);
+        player_W.fixedToCamera = true;
+        
+        player_Q = game.add.sprite(0,0, 'player').alignTo(player_W, Phaser.LEFT_CENTER, 32);
+        player_Q.fixedToCamera = true;
+        
+        player_E = game.add.sprite(0,0, 'player').alignTo(player_W, Phaser.RIGHT_CENTER, 32);
+        player_E.fixedToCamera = true;
+        
+        
+        game.playerUIGroup.add(player_W);
+        game.playerUIGroup.add(player_Q);
+        game.playerUIGroup.add(player_E);
+
+        //game.camera.width*0.5, 650
+        
+        
+    },
+    
     /****** PLAYER ******/
     initPlayer: function() {
         
         /*** add player's sprite, physics, collision etc ***/
-        player = game.add.sprite(10, 830, 'player');
+        player = game.add.sprite(10, 700, 'player');
         // add player pet (the hextech scout companion)
-        player_pet = game.add.sprite(-80, 900, 'player_pet');
+        player_pet = game.add.sprite(-50, 600, 'player_pet');
         //player.addChild(player.player_pet);
         
         game.physics.enable(player, Phaser.Physics.ARCADE);
@@ -86,12 +122,15 @@ TP.Game.prototype = {
     update: function() {
         
        this.playerUpdate();
+        
     },
+    
     // show fps
     render: function() {
         game.debug.text(game.time.fps, 2, 14, "#00ff00");
         game.debug.spriteInfo(player, 32, 32);
-        game.debug.spriteInfo(player_pet, 170, 170);
+        game.debug.spriteInfo(player_pet, 400, 32);
+        game.debug.cameraInfo(game.camera, 32, 300);
     },
     
     playerUpdate: function() {
@@ -111,7 +150,7 @@ TP.Game.prototype = {
 			player.body.velocity.x = -300;
             
             playerMoving = 'left';
-
+            
 			//player.animations.play('left');
 		}
 		else if (moveCursors.right.isDown )

@@ -10,7 +10,7 @@ TP.Boot.prototype = {
 	},
 	create: function(){
 		this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL
-        this.scale.setMinMax(480,320,1280,720);
+        this.scale.setMinMax(640,360,1280,720);
 		this.scale.pageAlignHorizontally = true;
 		this.scale.pageAlignVertically = true;
 		this.state.start('Preloader');
