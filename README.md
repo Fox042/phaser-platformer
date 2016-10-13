@@ -6,3 +6,5 @@ I am using [Enclave Phaser Template](https://github.com/EnclaveGames/Enclave-Pha
 
 ##Running Phaser 2.6.2
 [Phaser Repository](https://github.com/photonstorm/phaser/tree/v2.6.2)
+
+[Arcade Slopes Plugin](https://github.com/hexus/phaser-arcade-slopes) for Phaser
