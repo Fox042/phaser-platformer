@@ -59,34 +59,93 @@ TP.Game.prototype = {
         /****** UI ******/
     initUI: function() {
         
-        /*** add player's sprite, physics, collision etc ***/
-        //game.gamePausedGroup = this.add.group();
+        /*** PLAYER ABILITY UI ***/
         game.playerUIGroup = this.add.group();
+        game.playerAbilityGroup = this.add.group();
         
-        var style = { font: "bold 42px Arial", fill: "#fff", boundsAlignH: "center", boundsAlignV: "middle" };
-
-        /*  The Text is positioned at 0, 100
-        text = game.add.text(game.camera.width*0.5, 650, "test text", style);
-        text.setShadow(3, 3, 'rgba(0,0,0,0.5)', 2);
-        text.anchor.set(0.5,0.5);
-        text.fixedToCamera = true;*/
+        game.playerAbilityIcons = this.add.group();
+        game.playerAbilityText = this.add.group();
         
-        player_W = game.add.sprite(game.camera.width*0.5, 650, 'player');
+        var style = { font: "25px Arial", fill: "#fff", boundsAlignH: "center", boundsAlignV: "middle" };
+        
+        // W Ability icon and text
+        player_W = game.add.sprite(game.camera.width*0.5, 650, 'player_icons');
+        player_W.frame = 1;
         player_W.anchor.set(0.5,0.5);
-        player_W.fixedToCamera = true;
-        
-        player_Q = game.add.sprite(0,0, 'player').alignTo(player_W, Phaser.LEFT_CENTER, 32);
-        player_Q.fixedToCamera = true;
-        
-        player_E = game.add.sprite(0,0, 'player').alignTo(player_W, Phaser.RIGHT_CENTER, 32);
-        player_E.fixedToCamera = true;
+        playerW_text = game.add.text(0,0, "W", style).alignTo(player_W, Phaser.BOTTOM_CENTER);
         
         
-        game.playerUIGroup.add(player_W);
-        game.playerUIGroup.add(player_Q);
-        game.playerUIGroup.add(player_E);
+        // Q Ability icon and text
+        player_Q = game.add.sprite(0,0, 'player_icons').alignTo(player_W, Phaser.LEFT_CENTER, 32);
+        player_Q.frame = 0;
+        playerQ_text = game.add.text(0,0, "Q", style).alignTo(player_Q, Phaser.BOTTOM_CENTER);
+        
+        // E Ability icon and text
+        player_E = game.add.sprite(0,0, 'player_icons').alignTo(player_W, Phaser.RIGHT_CENTER, 32);
+        player_E.frame = 2;
+        playerE_text = game.add.text(0,0, "E", style).alignTo(player_E, Phaser.BOTTOM_CENTER);
+        
+        /** Section to add stuff to their respective Groups **/
+        
+        // add player ability Icons to a group
+        game.playerAbilityIcons.add(player_W);
+        game.playerAbilityIcons.add(player_Q);
+        game.playerAbilityIcons.add(player_E);
+        
+        // add player ability Text to a group
+        game.playerAbilityText.add(playerW_text);
+        game.playerAbilityText.add(playerQ_text);
+        game.playerAbilityText.add(playerE_text);
+        
+        // add player ability Text and Icons to a playerAbilityGroup
+        game.playerAbilityGroup.add(game.playerAbilityIcons);
+        game.playerAbilityGroup.add(game.playerAbilityText);      
+        
+        // ability displays are held in their entirety within playerUIGroup
+        game.playerUIGroup.add(game.playerAbilityGroup);
 
-        //game.camera.width*0.5, 650
+        /** END **/
+        
+        // add a pause button 
+        var pauseButton = this.add.button(1265, 80, 'button_pause', console.log('test'), this, 1, 0, 2);
+		pauseButton.anchor.set(1);
+        
+        game.playerUIGroup.add(pauseButton);    
+        
+        /*** PAUSE UI ***/
+        game.gamePausedGroup = this.add.group();
+        
+        pauseTitle = game.add.bitmapText(game.camera.width*0.5, 150, 'Upheaval', 'Pause Menu', 150);
+        pauseTitle.anchor.set(0.5,0.5);
+        
+        game.gamePausedGroup.add(pauseTitle);
+        
+        
+        
+        /*** FUNCTIONS ***/
+        
+        // run a foreach that fixes ability text to the camera *and* applies a stroke effect
+        game.playerAbilityText.forEach(strokeText, this, true);
+        
+        // run a foreach that fixes all UI elements to the camera
+        game.playerUIGroup.forEach(fixToCamera, this, true);
+        game.gamePausedGroup.forEach(fixToCamera, this, true);
+        
+        
+        // function to apply settings to ability text
+        function strokeText(textName){
+
+            textName.stroke = '#000000';
+            textName.strokeThickness = 4;
+        };
+        
+        // you get fixed to the camera, and *you* get fixed to the camera, and y
+        function fixToCamera(thingy){
+            thingy.fixedToCamera = true;
+        }    
+        
+        
+        //game.playerUIGroup.visible = false;
         
         
     },
@@ -97,7 +156,7 @@ TP.Game.prototype = {
         /*** add player's sprite, physics, collision etc ***/
         player = game.add.sprite(10, 700, 'player');
         // add player pet (the hextech scout companion)
-        player_pet = game.add.sprite(-50, 600, 'player_pet');
+        player_pet = game.add.sprite(-80,700, 'player_pet');
         //player.addChild(player.player_pet);
         
         game.physics.enable(player, Phaser.Physics.ARCADE);
@@ -130,14 +189,13 @@ TP.Game.prototype = {
         game.debug.text(game.time.fps, 2, 14, "#00ff00");
         game.debug.spriteInfo(player, 32, 32);
         game.debug.spriteInfo(player_pet, 400, 32);
-        game.debug.cameraInfo(game.camera, 32, 300);
+        game.debug.cameraInfo(game.camera, 32, 150);
     },
     
     playerUpdate: function() {
         
         // physics!!
         game.physics.arcade.collide(player, ground);
-        game.physics.arcade.overlap(player, player_pet);
         
         /*** Movement ***/
         

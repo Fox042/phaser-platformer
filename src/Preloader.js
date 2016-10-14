@@ -9,6 +9,8 @@ TP.Preloader.prototype = {
         
         // tilemap load
         game.load.tilemap('tilemap', 'src/tilemaps/tilemap_main.json', null, Phaser.Tilemap.TILED_JSON);
+        // bitmap font load
+        game.load.bitmapFont('Upheaval', 'src/fonts/upheaval.png', 'src/fonts/upheaval.fnt');
 	},
 	_preloadResources() {
 		var pack = TP.Preloader.resources;
@@ -31,7 +33,8 @@ TP.Preloader.resources = {
 	'spritesheet': [
         ['player', 'img/spritesheets/player.png', 64, 64],
         ['player_pet', 'img/spritesheets/player_pet.png', 32, 32],
-        //['player_icons', 'img/spritesheets/player_icons.png', 64, 64],
+        ['player_icons', 'img/spritesheets/player_icons.png', 64, 64, 3],
+        ['button_pause', 'img/spritesheets/button_pause.png', 64, 64, 3]
 	]
 	//'audio': [
 	//	['audio-click', ['sfx/audio-button.m4a','sfx/audio-button.mp3','sfx/audio-button.ogg']]
