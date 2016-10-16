@@ -2,6 +2,8 @@ TP.Game = function(game) {};
 TP.Game.prototype = {
     
     create: function() {
+        // global variables
+        this.pauseState = false;
         
         // start arcade physics and set background colour
         game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -107,7 +109,7 @@ TP.Game.prototype = {
         /** END **/
         
         // add a pause button 
-        var pauseButton = this.add.button(1265, 80, 'button_pause', console.log('test'), this, 1, 0, 2);
+        pauseButton = game.add.button(1265, 80, 'button_pause', this.togglePause, this, 1, 0, 2);
 		pauseButton.anchor.set(1);
         
         game.playerUIGroup.add(pauseButton);    
@@ -115,22 +117,51 @@ TP.Game.prototype = {
         /*** PAUSE UI ***/
         game.gamePausedGroup = this.add.group();
         
-        pauseTitle = game.add.bitmapText(game.camera.width*0.5, 150, 'Upheaval', 'Pause Menu', 150);
-        pauseTitle.anchor.set(0.5,0.5);
+        // add pause resume option. the rest of the pause menu is aligned around this
+        // order: title, SFX, resume, restart, exit
+        // button (over, out, down, up)
+        pauseResumeBtn = game.add.button(game.camera.width*0.5, game.camera.height*0.5, 'button_resume', this.togglePause, this, 0, 1, 2, 1);
+        pauseResumeBtn.anchor.set(0.5);
         
-        game.gamePausedGroup.add(pauseTitle);
+        pauseSFXBtn = game.add.button(0,0, 'button_sfx', this.togglePause, this, 0, 1, 2, 1).alignTo(pauseResumeBtn, Phaser.TOP_CENTER, 0, 80);
         
+        pauseTitleBtn = game.add.bitmapText(0,0, 'Upheaval', 'Pause Menu', 150).alignTo(pauseSFXBtn, Phaser.TOP_CENTER, 0, 80);
+                
+        pauseRestartBtn = game.add.button(0,0, 'button_restart', this.togglePause, this, 0, 1, 2, 1).alignTo(pauseResumeBtn, Phaser.BOTTOM_CENTER, 0, 80);
         
+        pauseExitBtn = game.add.button(0,0, 'button_exit', this.togglePause, this, 0, 1, 2, 1).alignTo(pauseRestartBtn, Phaser.BOTTOM_CENTER, 0, 80);
         
-        /*** FUNCTIONS ***/
+        /** pause menu functions **/
+        
+        function pauseSFX(){
+          console.log('SFX toggle');  
+        };
+        
+        function pauseRestart(){
+          console.log('Restart Level');  
+        };
+        
+        function pauseExit(){
+          console.log('Return to menu');  
+        };
+        
+        // add everything to the pausedGroup
+        game.gamePausedGroup.add(pauseTitleBtn);
+        game.gamePausedGroup.add(pauseSFXBtn);
+        game.gamePausedGroup.add(pauseResumeBtn);
+        game.gamePausedGroup.add(pauseRestartBtn);
+        game.gamePausedGroup.add(pauseExitBtn);
+        
+        game.gamePausedGroup.visible = false;
+        
+        /*** GENERAL UI FUNCTIONS ***/
         
         // run a foreach that fixes ability text to the camera *and* applies a stroke effect
         game.playerAbilityText.forEach(strokeText, this, true);
         
         // run a foreach that fixes all UI elements to the camera
         game.playerUIGroup.forEach(fixToCamera, this, true);
-        game.gamePausedGroup.forEach(fixToCamera, this, true);
-        
+        game.gamePausedGroup.forEach(fixToCamera, this, true);        
         
         // function to apply settings to ability text
         function strokeText(textName){
@@ -142,11 +173,7 @@ TP.Game.prototype = {
         // you get fixed to the camera, and *you* get fixed to the camera, and y
         function fixToCamera(thingy){
             thingy.fixedToCamera = true;
-        }    
-        
-        
-        //game.playerUIGroup.visible = false;
-        
+        }                
         
     },
     
@@ -191,6 +218,31 @@ TP.Game.prototype = {
         game.debug.spriteInfo(player_pet, 400, 32);
         game.debug.cameraInfo(game.camera, 32, 150);
     },
+    // pause menu function
+    togglePause: function(){
+
+        // toggle physics and UIs
+        if (!game.physics.arcade.isPaused){
+            game.physics.arcade.isPaused = true;
+            game.playerUIGroup.visible = false;
+            game.gamePausedGroup.visible = true;
+            // also disable movement input
+            this.pauseState = true;
+            // and make sure the pause menu UI is in front of everything else
+            game.world.bringToTop(game.gamePausedGroup);
+        } else {
+            game.physics.arcade.isPaused = false;
+            game.playerUIGroup.visible = true;
+            game.gamePausedGroup.visible = false;
+            this.pauseState = false;
+        }
+
+        //game.gamePausedGroup.visible = (game.gamePausedGroup.visible) ? false : true;
+
+        //game.playerUIGroup.visible = (game.playerUIGroup.visible) ? false : true;
+
+        //game.physics.arcade.isPaused = (game.physics.arcade.isPaused) ? false : true;
+    },
     
     playerUpdate: function() {
         
@@ -202,30 +254,33 @@ TP.Game.prototype = {
         // by default the player is not moving
 	    player.body.velocity.x = 0;
         
-        if (moveCursors.left.isDown)
-		{
-			//  Move to the left
-			player.body.velocity.x = -300;
-            
-            playerMoving = 'left';
-            
-			//player.animations.play('left');
-		}
-		else if (moveCursors.right.isDown )
-		{
-			//  Move to the right
-			player.body.velocity.x = +300;
-            
-            playerMoving = 'right';
+        // if the game isn't paused, allow the player to move
+        if (this.pauseState == false){
+            if (moveCursors.left.isDown)
+            {
+                //  Move to the left
+                player.body.velocity.x = -300;
 
-			//player.animations.play('right');
-		}
+                playerMoving = 'left';
 
-		//  Allow the player to jump if they are touching the ground.
-		if (jumpBtn.isDown && player.body.blocked.down)
-		{
-			player.body.velocity.y = -750;
-		}
+                //player.animations.play('left');
+            }
+            else if (moveCursors.right.isDown )
+            {
+                //  Move to the right
+                player.body.velocity.x = +300;
+
+                playerMoving = 'right';
+
+                //player.animations.play('right');
+            }
+
+            //  Allow the player to jump if they are touching the ground.
+            if (jumpBtn.isDown && player.body.blocked.down)
+            {
+                player.body.velocity.y = -750;
+            }
+        }
         
         // attach the pet to the player
         this.playerPetMove();

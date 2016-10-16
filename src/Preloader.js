@@ -34,7 +34,11 @@ TP.Preloader.resources = {
         ['player', 'img/spritesheets/player.png', 64, 64],
         ['player_pet', 'img/spritesheets/player_pet.png', 32, 32],
         ['player_icons', 'img/spritesheets/player_icons.png', 64, 64, 3],
-        ['button_pause', 'img/spritesheets/button_pause.png', 64, 64, 3]
+        ['button_pause', 'img/spritesheets/button_pause.png', 64, 64, 3],
+        ['button_resume', 'img/spritesheets/button_resume.png', 520, 40, 3],
+        ['button_sfx', 'img/spritesheets/button_sfx.png', 452, 40, 3],
+        ['button_restart', 'img/spritesheets/button_restart.png', 760, 40, 3],
+        ['button_exit', 'img/spritesheets/button_exit.png', 408, 40, 3]
 	]
 	//'audio': [
 	//	['audio-click', ['sfx/audio-button.m4a','sfx/audio-button.mp3','sfx/audio-button.ogg']]
