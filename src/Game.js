@@ -37,9 +37,9 @@ TP.Game.prototype = {
         
         // pass tilemap to arcade slopes plugin
         collisionMap = {
-            2:  'FULL',
-            4:  'HALF_BOTTOM_LEFT',
-            5:  'HALF_BOTTOM'
+            2: 'FULL',
+            4: 'FULL',
+            5: 'HALF_BOTTOM'
         }
 
         game.slopes.convertTilemapLayer(ground, collisionMap);
@@ -62,12 +62,26 @@ TP.Game.prototype = {
     initUI: function() {
         
         /*** PLAYER ABILITY UI ***/
+        
+        // add groups
         game.playerUIGroup = this.add.group();
         game.playerAbilityGroup = this.add.group();
+        game.playerLivesGroup = this.add.group();
         
+        // add groups within groups
         game.playerAbilityIcons = this.add.group();
         game.playerAbilityText = this.add.group();
         
+        // player lives section
+        player_healthBar = game.add.sprite(10,10, 'player_healthBar');
+        player_healthEmpty = game.add.sprite(10,10, 'player_healthEmpty');
+        
+        player_healthBar.cropEnabled;
+        
+        game.playerLivesGroup.add(player_healthBar);
+        game.playerLivesGroup.add(player_healthEmpty);
+        
+        // ability icons section
         var style = { font: "25px Arial", fill: "#fff", boundsAlignH: "center", boundsAlignV: "middle" };
         
         // W Ability icon and text
@@ -75,7 +89,6 @@ TP.Game.prototype = {
         player_W.frame = 1;
         player_W.anchor.set(0.5,0.5);
         playerW_text = game.add.text(0,0, "W", style).alignTo(player_W, Phaser.BOTTOM_CENTER);
-        
         
         // Q Ability icon and text
         player_Q = game.add.sprite(0,0, 'player_icons').alignTo(player_W, Phaser.LEFT_CENTER, 32);
@@ -103,8 +116,9 @@ TP.Game.prototype = {
         game.playerAbilityGroup.add(game.playerAbilityIcons);
         game.playerAbilityGroup.add(game.playerAbilityText);      
         
-        // ability displays are held in their entirety within playerUIGroup
+        // ability displays are held in their entirety within playerUIGroup (as are player lives)
         game.playerUIGroup.add(game.playerAbilityGroup);
+        game.playerUIGroup.add(game.playerLivesGroup);
 
         /** END **/
         
@@ -198,24 +212,38 @@ TP.Game.prototype = {
         // the camera should follow the player & enable slopes collision
         game.camera.follow(player, Phaser.Camera.FOLLOW_PLATFORMER);
         
+        // implement health
+        player.maxHealth = 100;
+        player.health = 100;
+        
         // load controls
 		jumpBtn = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
         moveCursors = game.input.keyboard.createCursorKeys();
+        pauseBtn = game.input.keyboard.addKey(Phaser.Keyboard.P);
+        killBtn = game.input.keyboard.addKey(Phaser.Keyboard.K);
+        healBtn = game.input.keyboard.addKey(Phaser.Keyboard.H);
         
     },
     
     /****** UPDATE FUNCTION ******/
     update: function() {
         
-       this.playerUpdate();
+        this.playerUpdate();
+        
+        // this signal will pause the game if the user presses 'P'
+        pauseBtn.onDown.add(this.togglePause, this);
+        
+        // a signal that will remove a life when you get damaged, and the opposite
+        killBtn.onDown.add(this.damagePlayer, this, 0, 10);
+        healBtn.onDown.add(this.healPlayer, this, 0, 10);
         
     },
     
     // show fps
     render: function() {
-        game.debug.text(game.time.fps, 2, 14, "#00ff00");
-        game.debug.spriteInfo(player, 32, 32);
-        game.debug.spriteInfo(player_pet, 400, 32);
+        game.debug.text(game.time.fps, 1240, 700, "#00ff00");
+        //game.debug.spriteInfo(player, 32, 32);
+        //game.debug.spriteInfo(player_pet, 400, 32);
         game.debug.cameraInfo(game.camera, 32, 150);
     },
     // pause menu function
@@ -236,14 +264,8 @@ TP.Game.prototype = {
             game.gamePausedGroup.visible = false;
             this.pauseState = false;
         }
-
-        //game.gamePausedGroup.visible = (game.gamePausedGroup.visible) ? false : true;
-
-        //game.playerUIGroup.visible = (game.playerUIGroup.visible) ? false : true;
-
-        //game.physics.arcade.isPaused = (game.physics.arcade.isPaused) ? false : true;
     },
-    
+    /****** PLAYER *******/
     playerUpdate: function() {
         
         // physics!!
@@ -355,6 +377,37 @@ TP.Game.prototype = {
             break;
         }
         
-    }
+    },
     
+    // if a player gets damaged, take away a life. if they're too hurt... game over!
+    // argument[1]: damage amount
+    damagePlayer: function(){
+        
+        if (player.health > 10 && player.health <= 100 ){
+            
+            // apply the damage
+            player.damage(arguments[1]);
+            
+            // crop the health bar 
+            cropRect = new Phaser.Rectangle(0,0,((player.health / player.maxHealth) * 100), 29);       
+            player_healthBar.crop(cropRect, false);
+        }
+
+    },
+    
+    // if a player gets healed, add life.
+    // argument[1]: health amount
+    healPlayer: function(){
+        
+        if (player.health > 0 && player.health < 100 ){
+            
+            // apply the heal
+            player.heal(arguments[1]);
+            
+            // reduce the crop on the health bar
+            cropRect = new Phaser.Rectangle(0,0,((player.health / player.maxHealth) * 100), 29);   
+            player_healthBar.crop(cropRect, false);   
+        }
+    },
+
 }
