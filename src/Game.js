@@ -23,6 +23,7 @@ TP.Game.prototype = {
         this.initTilemap();
         this.initUI();
         this.initPlayer();
+        this.initEnemies();
         
     },
     
@@ -218,10 +219,9 @@ TP.Game.prototype = {
     initPlayer: function() {
         
         /*** add player's sprite, physics, collision etc ***/
-        player = game.add.sprite(10, 700, 'player');
+        player = game.add.sprite(10, 704, 'player');
         // add player pet (the hextech scout companion)
-        player_pet = game.add.sprite(-80,700, 'player_pet');
-        //player.addChild(player.player_pet);
+        player_pet = game.add.sprite(-80,704, 'player_pet');
         
         game.physics.enable(player, Phaser.Physics.ARCADE);
         game.physics.enable(player_pet, Phaser.Physics.ARCADE);
@@ -248,6 +248,30 @@ TP.Game.prototype = {
         
     },
     
+    initEnemies: function(){
+        
+    enemyTest = function (game, x, y) {
+
+        Phaser.Sprite.call(this, game, x, y, "enemy_test");
+        //enemy_test = game.add.sprite(x, y, 'enemy_test');
+        
+        game.physics.enable(this, Phaser.Physics.ARCADE);
+        this.enableBody = true;
+        this.body.gravity.y = 800;
+        this.body.bounce.x = 0.2;
+        this.body.collideWorldBounds = true;
+
+    };
+
+    enemyTest.prototype = Object.create(Phaser.Sprite.prototype);
+    enemyTest.prototype.constructor = enemyTest;
+        
+    enemy_test = new enemyTest(game, 300, 404);
+        
+    game.add.existing(enemy_test);
+        
+    },
+    
     /****** UPDATE FUNCTION ******/
     update: function() {
         
@@ -266,7 +290,7 @@ TP.Game.prototype = {
     render: function() {
         game.debug.text(game.time.fps, 1240, 700, "#00ff00");
         //game.debug.spriteInfo(player, 32, 32);
-        //game.debug.spriteInfo(player_pet, 400, 32);
+        game.debug.spriteInfo(enemy_test, 32, 32);
         game.debug.cameraInfo(game.camera, 32, 150);
     },
     // pause menu function
