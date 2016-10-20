@@ -35,19 +35,41 @@ TP.Game.prototype = {
         ground = map.createLayer('Tile Layer');
         ground.resizeWorld();
         
-        // pass tilemap to arcade slopes plugin
+        // pass tilemap to arcade slopes plugin        
+        
         collisionMap = {
             2: 'FULL',
-            4: 'FULL',
-            5: 'HALF_BOTTOM'
+            3: 'FULL',
+            4: 'HALF_BOTTOM_LEFT',
+            5: 'HALF_BOTTOM_RIGHT',
+            6: 'HALF_TOP_RIGHT',
+            7: 'HALF_TOP_LEFT',
+            8: 'QUARTER_BOTTOM_LEFT_LOW',
+            9: 'QUARTER_BOTTOM_RIGHT_LOW',
+            10: 'QUARTER_TOP_RIGHT_LOW',
+            11: 'QUARTER_TOP_LEFT_LOW',
+            12: 'QUARTER_BOTTOM_LEFT_HIGH',
+            13: 'QUARTER_BOTTOM_RIGHT_HIGH',
+            14: 'QUARTER_TOP_RIGHT_HIGH',
+            15: 'QUARTER_TOP_LEFT_HIGH',
+            16: 'QUARTER_LEFT_BOTTOM_HIGH',
+            17: 'QUARTER_RIGHT_BOTTOM_HIGH',
+            18: 'QUARTER_RIGHT_TOP_LOW',
+            19: 'QUARTER_LEFT_TOP_LOW',
+            20: 'QUARTER_LEFT_BOTTOM_LOW',
+            21: 'QUARTER_RIGHT_BOTTOM_LOW',
+            22: 'HALF_BOTTOM',
+            23: 'HALF_LEFT',
+            24: 'HALF_RIGHT',
+            25: 'HALF_TOP'
         }
 
         game.slopes.convertTilemapLayer(ground, collisionMap);
         
         // exlude some tiles from collision
         collisionExcluded = [
-            3, // grass blades
-            7 // grass blades
+            26, // grass blades
+            27  // grass blades
         ];
         
         map.setCollisionByExclusion(collisionExcluded, true, 'Tile Layer');
@@ -167,6 +189,7 @@ TP.Game.prototype = {
         game.gamePausedGroup.add(pauseExitBtn);
         
         game.gamePausedGroup.visible = false;
+        //game.playerUIGroup.visible = false;
         
         /*** GENERAL UI FUNCTIONS ***/
         
@@ -298,7 +321,7 @@ TP.Game.prototype = {
             }
 
             //  Allow the player to jump if they are touching the ground.
-            if (jumpBtn.isDown && player.body.blocked.down)
+            if (jumpBtn.isDown && player.body.touching.down)
             {
                 player.body.velocity.y = -750;
             }
