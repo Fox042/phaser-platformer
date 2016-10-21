@@ -244,6 +244,9 @@ TP.Game.prototype = {
 		jumpBtn = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
         moveCursors = game.input.keyboard.createCursorKeys();
         pauseBtn = game.input.keyboard.addKey(Phaser.Keyboard.P);
+        keyQ = game.input.keyboard.addKey(Phaser.Keyboard.Q);
+        keyW = game.input.keyboard.addKey(Phaser.Keyboard.W);
+        keyE = game.input.keyboard.addKey(Phaser.Keyboard.E);
         
     },
     
@@ -298,6 +301,15 @@ TP.Game.prototype = {
         
         // this signal will pause the game if the user presses 'P'
         pauseBtn.onDown.add(this.togglePause, this);
+        
+        // this signal will cause the player's pet to fire a projectile at the nearest enemy
+        keyQ.onDown.add(this.playerAbilities, this, 0, "Q");
+        
+        // this signal will cause the player's pet to deploy hextech rope
+        keyW.onDown.add(this.playerAbilities, this, 0, "W");
+        
+        // this signal will cause the player's pet to toss a shroom
+        keyE.onDown.add(this.playerAbilities, this, 0, "E");
         
     },
     
@@ -441,6 +453,45 @@ TP.Game.prototype = {
         }
         
     },
+    
+    /****** PLAYER ABILITIES SECTION ******/
+    playerAbilities: function(){
+        
+        // run the ability function according to the key pressed
+        var abilityUsed = arguments[1];
+        
+        switch (abilityUsed) {
+            
+            case "Q":
+                fireQ();
+            break;
+                
+            case "W":
+                fireW();
+            break;
+                
+            case "E":
+                fireE();
+        }
+        
+        // fire Q
+        function fireQ(){
+            console.log('q function');
+        }
+        
+        // fire W
+        function fireW(){
+            console.log('w function');
+        }
+        
+        // fire E
+        function fireE(){
+            console.log('e function');
+        }
+        
+        
+    },
+    
     /****** ENEMY SECTION ******/
     enemyUpdate: function(){
         
