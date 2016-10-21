@@ -36,7 +36,9 @@ TP.Preloader.resources = {
         ['player', 'img/spritesheets/player.png', 64, 64],
         ['player_pet', 'img/spritesheets/player_pet.png', 32, 32],
         ['player_icons', 'img/spritesheets/player_icons.png', 64, 64],
-        ['player_lives', 'img/spritesheets/player_lives.png', 32, 29],
+        // enemies
+        ['enemy_test', 'img/spritesheets/enemyTest.png', 64, 64],
+        // pause menu
         ['button_pause', 'img/spritesheets/button_pause.png', 64, 64],
         ['button_resume', 'img/spritesheets/button_resume.png', 520, 40],
         ['button_sfx', 'img/spritesheets/button_sfx.png', 452, 40],

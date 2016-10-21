@@ -23,6 +23,7 @@ TP.Game.prototype = {
         this.initTilemap();
         this.initUI();
         this.initPlayer();
+        this.initEnemies();
         
     },
     
@@ -34,6 +35,7 @@ TP.Game.prototype = {
         map.addTilesetImage('tiles', 'tiles');
         ground = map.createLayer('Tile Layer');
         ground.resizeWorld();
+        //ground.debug = true;  
         
         // pass tilemap to arcade slopes plugin        
         
@@ -218,10 +220,9 @@ TP.Game.prototype = {
     initPlayer: function() {
         
         /*** add player's sprite, physics, collision etc ***/
-        player = game.add.sprite(10, 700, 'player');
+        player = game.add.sprite(10, 704, 'player');
         // add player pet (the hextech scout companion)
-        player_pet = game.add.sprite(-80,700, 'player_pet');
-        //player.addChild(player.player_pet);
+        player_pet = game.add.sprite(-80,704, 'player_pet');
         
         game.physics.enable(player, Phaser.Physics.ARCADE);
         game.physics.enable(player_pet, Phaser.Physics.ARCADE);
@@ -243,30 +244,68 @@ TP.Game.prototype = {
 		jumpBtn = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
         moveCursors = game.input.keyboard.createCursorKeys();
         pauseBtn = game.input.keyboard.addKey(Phaser.Keyboard.P);
-        killBtn = game.input.keyboard.addKey(Phaser.Keyboard.K);
-        healBtn = game.input.keyboard.addKey(Phaser.Keyboard.H);
         
+    },
+    
+    initEnemies: function(){
+        
+        // enemy group
+        game.enemyGroup = this.add.group();
+        
+        // enemy sub-groups
+        game.enemyTestGroup = this.add.group();
+
+        // create the test enemy object    
+        testEnemy = function (game, x, y) {
+
+            Phaser.Sprite.call(this, game, x, y, "enemy_test");
+
+            game.physics.enable(this, Phaser.Physics.ARCADE);
+            this.enableBody = true;
+            this.body.gravity.y = 2000;
+            this.body.bounce.x = 0.2;
+            this.body.collideWorldBounds = true;
+            game.slopes.enable(this);
+            
+            this.maxHealth = 10;
+            this.health = 10;
+
+        };
+
+        testEnemy.prototype = Object.create(Phaser.Sprite.prototype);
+        testEnemy.prototype.constructor = testEnemy;
+
+        // create the actual enemies and add them to the enemy group
+        enemy_test = new testEnemy(game, 260, 704);
+        game.enemyTestGroup.add(enemy_test);
+        
+        // add the sub-groups to the main enemy group
+        game.enemyGroup.add(game.enemyTestGroup);
+        
+        // this foreach adds the enemies to the game (they are ready, but not on the canvas yet)  
+        game.enemyGroup.forEach(enemyToCanvas, this, true);
+        // the function for the foreach
+        function enemyToCanvas(enemy){
+            game.add.existing(enemy);
+        }
     },
     
     /****** UPDATE FUNCTION ******/
     update: function() {
         
         this.playerUpdate();
+        this.enemyUpdate();
         
         // this signal will pause the game if the user presses 'P'
         pauseBtn.onDown.add(this.togglePause, this);
-        
-        // a signal that will remove a life when you get damaged, and the opposite
-        killBtn.onDown.add(this.damagePlayer, this, 0, 10);
-        healBtn.onDown.add(this.healPlayer, this, 0, 10);
         
     },
     
     // show fps
     render: function() {
         game.debug.text(game.time.fps, 1240, 700, "#00ff00");
-        //game.debug.spriteInfo(player, 32, 32);
-        //game.debug.spriteInfo(player_pet, 400, 32);
+        game.debug.spriteInfo(player, 400, 32);
+        game.debug.spriteInfo(enemy_test, 32, 32);
         game.debug.cameraInfo(game.camera, 32, 150);
     },
     // pause menu function
@@ -357,7 +396,8 @@ TP.Game.prototype = {
         switch (playerMoving){
             case 'right':
                 
-                // check x       
+                // check x
+                // if it reached the right position, it can stop moving
                 if (playerPetX == playerOrbitRight.x)
                 {	
                     player_pet.body.velocity.x = 0; 
@@ -401,15 +441,34 @@ TP.Game.prototype = {
         }
         
     },
+    /****** ENEMY SECTION ******/
+    enemyUpdate: function(){
+        
+        // physics!!
+        game.physics.arcade.collide(game.enemyTestGroup, ground);
+        game.physics.arcade.overlap(game.enemyTestGroup, player, this.damagePlayer);
+        
+        
+    },
     
     // if a player gets damaged, take away a life. if they're too hurt... game over!
-    // argument[1]: damage amount
-    damagePlayer: function(){
+    damagePlayer: function(player, enemy){
         
         if (player.health > 10 && player.health <= 100 ){
             
-            // apply the damage
-            player.damage(arguments[1]);
+            // apply the damage according to the enemy
+            switch (enemy.key){
+                    
+                case "enemy_test": 
+                    player.damage(1);
+                    break;
+                    
+                default: 
+                    player.damage(0);
+                    break;
+            };
+    
+            console.log(player.health);
             
             // crop the health bar 
             cropRect = new Phaser.Rectangle(0,0,((player.health / player.maxHealth) * 100), 29);       
@@ -419,13 +478,23 @@ TP.Game.prototype = {
     },
     
     // if a player gets healed, add life.
-    // argument[1]: health amount
-    healPlayer: function(){
+    healPlayer: function(player, healPack){
         
         if (player.health > 0 && player.health < 100 ){
             
-            // apply the heal
-            player.heal(arguments[1]);
+            // apply the heal according to heal pack
+            switch (healPack.key){
+                    
+                case "heal_test": 
+                    player.heal(10);
+                    break;
+                    
+                default: 
+                    player.heal(0);
+                    break;
+            };
+    
+            console.log(player.health);
             
             // reduce the crop on the health bar
             cropRect = new Phaser.Rectangle(0,0,((player.health / player.maxHealth) * 100), 29);   
