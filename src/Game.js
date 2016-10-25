@@ -230,6 +230,8 @@ TP.Game.prototype = {
         player.body.bounce.y = 0.2;
 		player.body.gravity.y = 2000;
         player.body.collideWorldBounds = true;
+        // by default the player is not invincible
+        player.invincible = false;
 
         game.slopes.enable(player);
         
@@ -364,7 +366,7 @@ TP.Game.prototype = {
             else if (moveCursors.right.isDown )
             {
                 //  Move to the right
-                player.body.velocity.x = +300;
+                player.body.velocity.x = 300;
 
                 playerMoving = 'right';
 
@@ -496,36 +498,59 @@ TP.Game.prototype = {
     enemyUpdate: function(){
         
         // physics!!
-        game.physics.arcade.collide(game.enemyTestGroup, ground);
-        game.physics.arcade.overlap(game.enemyTestGroup, player, this.damagePlayer);
-        
-        
+        if (this.pauseState == false){
+            game.physics.arcade.collide(game.enemyTestGroup, ground);
+            game.physics.arcade.overlap(game.enemyTestGroup, player, this.damagePlayer);
+        };
+                
     },
-    
     // if a player gets damaged, take away a life. if they're too hurt... game over!
-    damagePlayer: function(player, enemy){
-        
-        if (player.health > 10 && player.health <= 100 ){
-            
+    damagePlayer: function(player, enemy, hitTime){
+        // if the player's health is within certain parameters
+        if ((player.health > 10 && player.health <= 100) && player.invincible == false) {
+
             // apply the damage according to the enemy
-            switch (enemy.key){
-                    
-                case "enemy_test": 
-                    player.damage(1);
+            switch (enemy.key) {
+                case "enemy_test":
+                    player.damage(10);
+                    console.log(player.health);
+                    toggleInvincible();
+                    knockBack();
+                    game.time.events.add(2000, toggleInvincible, this);
                     break;
-                    
-                default: 
+
+                default:
                     player.damage(0);
                     break;
             };
-    
-            console.log(player.health);
-            
-            // crop the health bar 
-            cropRect = new Phaser.Rectangle(0,0,((player.health / player.maxHealth) * 100), 29);       
-            player_healthBar.crop(cropRect, false);
-        }
 
+            //console.log(player.health);
+
+            // crop the health bar 
+            cropRect = new Phaser.Rectangle(0, 0, ((player.health / player.maxHealth) * 100), 29);
+            player_healthBar.crop(cropRect, false);
+        };
+        
+        // function that knocks you back from your enemy
+        function knockBack() {
+            
+             player.body.velocity.y = -900;
+
+        };
+        
+        // function that toggles invincible state
+        function toggleInvincible() {
+            // toggle invincible state
+            player.invincible = !player.invincible;
+            // toggle alpha that visually shows whether you're invincible
+            if (player.alpha == 1)
+            {
+                player.alpha = 0.5;
+            } else {
+                player.alpha = 1;
+            }
+        }
+        
     },
     
     // if a player gets healed, add life.
