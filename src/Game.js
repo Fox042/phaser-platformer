@@ -4,6 +4,8 @@ TP.Game.prototype = {
     create: function() {
         // global variables
         this.pauseState = false;
+        this.Q_Unlocked = false;
+        this.Q_Enabled = false;
         
         // start arcade physics and set background colour
         game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -223,6 +225,7 @@ TP.Game.prototype = {
         player = game.add.sprite(10, 704, 'player');
         // add player pet (the hextech scout companion)
         player_pet = game.add.sprite(-80,704, 'player_pet');
+        player_pet.anchor.set(0.5,0.5);
         
         game.physics.enable(player, Phaser.Physics.ARCADE);
         game.physics.enable(player_pet, Phaser.Physics.ARCADE);
@@ -242,6 +245,20 @@ TP.Game.prototype = {
         player.maxHealth = 100;
         player.health = 100;
         
+        // INITIALISE WEAPONS SYSTEM (but really) 
+        
+        // add the bullets, that will be killed once they leave the camera's bounds
+        player_weapon = game.add.weapon(10, 'testBullet');
+        player_weapon.bulletKillType = Phaser.Weapon.KILL_CAMERA_BOUNDS;
+
+        //  The speed at which the bullets are fired
+        player_weapon.bulletSpeed = 600;
+        player_weapon.fireRate = 100;
+        
+        // bullets are fired from the player_pet
+        player_weapon.trackSprite(player_pet);
+
+        
         // load controls
 		jumpBtn = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
         moveCursors = game.input.keyboard.createCursorKeys();
@@ -256,9 +273,6 @@ TP.Game.prototype = {
         
         // enemy group
         game.enemyGroup = this.add.group();
-        
-        // enemy sub-groups
-        game.enemyTestGroup = this.add.group();
 
         // create the test enemy object    
         testEnemy = function (game, x, y) {
@@ -266,14 +280,20 @@ TP.Game.prototype = {
             Phaser.Sprite.call(this, game, x, y, "enemy_test");
 
             game.physics.enable(this, Phaser.Physics.ARCADE);
+            game.slopes.enable(this);
             this.enableBody = true;
             this.body.gravity.y = 2000;
             this.body.bounce.x = 0.2;
             this.body.collideWorldBounds = true;
-            game.slopes.enable(this);
+            this.anchor.set(0.5,0.5);
             
+            // health
             this.maxHealth = 10;
             this.health = 10;
+            
+            // add to the enemy group
+            game.enemyGroup.add(this);
+            
 
         };
 
@@ -282,22 +302,46 @@ TP.Game.prototype = {
 
         // create the actual enemies and add them to the enemy group
         enemy_test = new testEnemy(game, 260, 704);
-        game.enemyTestGroup.add(enemy_test);
+        enemy_test2 = new testEnemy(game, 660, 704);
         
-        // add the sub-groups to the main enemy group
-        game.enemyGroup.add(game.enemyTestGroup);
-        
-        // this foreach adds the enemies to the game (they are ready, but not on the canvas yet)  
-        game.enemyGroup.forEach(enemyToCanvas, this, true);
-        // the function for the foreach
-        function enemyToCanvas(enemy){
-            game.add.existing(enemy);
-        }
     },
     
     /****** UPDATE FUNCTION ******/
     update: function() {
         
+
+        // check if there are any enemies alive
+        if (game.enemyGroup.countLiving()  > 0){
+            
+            // Q is only able to be used when there is an enemy close enough
+            // Q will always target the closest enemy
+            
+            closestEnemy = game.enemyGroup.getClosestTo(player);
+
+            distanceToEnemy = game.physics.arcade.distanceBetween(player, closestEnemy);
+
+            checkQ();
+
+            // check whether the player is able to use their Q or not
+            function checkQ(){
+
+                // if they are close enough, the player can fire Q
+                if (distanceToEnemy <= 400) {
+
+                    game.Q_Enabled = true;
+
+                } else {
+
+                    game.Q_Enabled = false;
+                }
+            }
+            
+        } else {
+            game.Q_Enabled = false;
+        };
+        
+        
+        // update player and enemy
         this.playerUpdate();
         this.enemyUpdate();
         
@@ -478,12 +522,16 @@ TP.Game.prototype = {
         
         // fire Q
         function fireQ(){
-            console.log('q function');
+            if (game.Q_Enabled == true){
+                player_weapon.fireAtSprite(closestEnemy);
+            }
+            
         }
         
         // fire W
         function fireW(){
             console.log('w function');
+            console.log(player_weapon);
         }
         
         // fire E
@@ -499,13 +547,14 @@ TP.Game.prototype = {
         
         // physics!!
         if (this.pauseState == false){
-            game.physics.arcade.collide(game.enemyTestGroup, ground);
-            game.physics.arcade.overlap(game.enemyTestGroup, player, this.damagePlayer);
+            game.physics.arcade.collide(game.enemyGroup, ground);
+            game.physics.arcade.overlap(game.enemyGroup, player, this.damagePlayer);
+            game.physics.arcade.overlap(player_weapon.bullets, game.enemyGroup, this.damageEnemy, null, this);
         };
                 
     },
     // if a player gets damaged, take away a life. if they're too hurt... game over!
-    damagePlayer: function(player, enemy, hitTime){
+    damagePlayer: function(player, enemy){
         // if the player's health is within certain parameters
         if ((player.health > 10 && player.health <= 100) && player.invincible == false) {
 
@@ -523,8 +572,6 @@ TP.Game.prototype = {
                     player.damage(0);
                     break;
             };
-
-            //console.log(player.health);
 
             // crop the health bar 
             cropRect = new Phaser.Rectangle(0, 0, ((player.health / player.maxHealth) * 100), 29);
@@ -577,5 +624,21 @@ TP.Game.prototype = {
             player_healthBar.crop(cropRect, false);   
         }
     },
+    
+    // damage the enemy
+    damageEnemy: function(bullet, enemy){
+        
+        // if the player's health is within certain parameters
+        if (enemy.health > 0 && enemy.health <= 10) {
+
+                // apply the damage according to the enemy
+                enemy.damage(5);
+                // destroy the bullet on-hit
+                bullet.kill();
+                console.log(enemy.health);
+
+            };
+        
+    }
 
 }
