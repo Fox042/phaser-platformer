@@ -252,7 +252,7 @@ TP.Game.prototype = {
         player_weapon.bulletKillType = Phaser.Weapon.KILL_CAMERA_BOUNDS;
 
         //  The speed at which the bullets are fired
-        player_weapon.bulletSpeed = 600;
+        player_weapon.bulletSpeed = 800;
         player_weapon.fireRate = 100;
         
         // bullets are fired from the player_pet
@@ -338,6 +338,8 @@ TP.Game.prototype = {
             
         } else {
             game.Q_Enabled = false;
+            // if there are still bullets in flight when all enemies are dead... kill them
+            player_weapon.killAll();
         };
         
         
