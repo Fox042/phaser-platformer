@@ -247,9 +247,10 @@ TP.Game.prototype = {
         
         // INITIALISE WEAPONS SYSTEM (but really) 
         
-        // add the bullets, that will be killed once they leave the camera's bounds
+        // add the bullets, that will be killed once they exceed a certain distance
         player_weapon = game.add.weapon(10, 'testBullet');
-        player_weapon.bulletKillType = Phaser.Weapon.KILL_CAMERA_BOUNDS;
+        player_weapon.bulletKillType = Phaser.Weapon.KILL_DISTANCE;
+        player_weapon.bulletKillDistance = 400;
 
         //  The speed at which the bullets are fired
         player_weapon.bulletSpeed = 800;
