@@ -2,10 +2,17 @@ TP.Game = function(game) {};
 TP.Game.prototype = {
     
     create: function() {
-        // global variables
+        /** global variables **/
         this.pauseState = false;
+        // abilities
         this.Q_Unlocked = false;
         this.Q_Enabled = false;
+        // player
+        this.healthDropChance = 1;
+        
+        /** constants **/
+        STANDARD_GRAVITY = 2000;
+        HEALTH_DROP_MODIFIER = 10;
         
         // start arcade physics and set background colour
         game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -231,7 +238,7 @@ TP.Game.prototype = {
         game.physics.enable(player_pet, Phaser.Physics.ARCADE);
         
         player.body.bounce.y = 0.2;
-		player.body.gravity.y = 2000;
+		player.body.gravity.y = STANDARD_GRAVITY;
         player.body.collideWorldBounds = true;
         // by default the player is not invincible
         player.invincible = false;
@@ -243,14 +250,14 @@ TP.Game.prototype = {
         
         // implement health
         player.maxHealth = 100;
-        player.health = 100;
+        player.health = 50;
         
         // INITIALISE WEAPONS SYSTEM (but really) 
         
         // add the bullets, that will be killed once they exceed a certain distance
         player_weapon = game.add.weapon(10, 'testBullet');
         player_weapon.bulletKillType = Phaser.Weapon.KILL_DISTANCE;
-        player_weapon.bulletKillDistance = 400;
+        player_weapon.bulletKillDistance = 402;
 
         //  The speed at which the bullets are fired
         player_weapon.bulletSpeed = 800;
@@ -258,6 +265,30 @@ TP.Game.prototype = {
         
         // bullets are fired from the player_pet
         player_weapon.trackSprite(player_pet);
+        
+        // INITIALISE HEALTH PACKS
+        
+        game.healthPacksGroup = this.add.group();
+        
+        healthPacks = function (game, x, y) {
+
+            Phaser.Sprite.call(this, game, x, y, "healthPack");
+
+            game.physics.enable(this, Phaser.Physics.ARCADE);
+            game.slopes.enable(this);
+            this.enableBody = true;
+            this.body.gravity.y = 400;
+            this.body.bounce.y = 0.2;
+            this.body.collideWorldBounds = true;
+            this.anchor.set(0.5,0.5);
+            
+            // add to the health pack group
+            game.healthPacksGroup.add(this); 
+
+        };
+
+        healthPacks.prototype = Object.create(Phaser.Sprite.prototype);
+        healthPacks.prototype.constructor = healthPacks;        
 
         
         // load controls
@@ -283,7 +314,7 @@ TP.Game.prototype = {
             game.physics.enable(this, Phaser.Physics.ARCADE);
             game.slopes.enable(this);
             this.enableBody = true;
-            this.body.gravity.y = 2000;
+            this.body.gravity.y = STANDARD_GRAVITY;
             this.body.bounce.x = 0.2;
             this.body.collideWorldBounds = true;
             this.anchor.set(0.5,0.5);
@@ -308,41 +339,7 @@ TP.Game.prototype = {
     },
     
     /****** UPDATE FUNCTION ******/
-    update: function() {
-        
-
-        // check if there are any enemies alive
-        if (game.enemyGroup.countLiving()  > 0){
-            
-            // Q is only able to be used when there is an enemy close enough
-            // Q will always target the closest enemy
-            
-            closestEnemy = game.enemyGroup.getClosestTo(player);
-
-            distanceToEnemy = game.physics.arcade.distanceBetween(player, closestEnemy);
-
-            checkQ();
-
-            // check whether the player is able to use their Q or not
-            function checkQ(){
-
-                // if they are close enough, the player can fire Q
-                if (distanceToEnemy <= 400) {
-
-                    game.Q_Enabled = true;
-
-                } else {
-
-                    game.Q_Enabled = false;
-                }
-            }
-            
-        } else {
-            game.Q_Enabled = false;
-            // if there are still bullets in flight when all enemies are dead... kill them
-            player_weapon.killAll();
-        };
-        
+    update: function() {    
         
         // update player and enemy
         this.playerUpdate();
@@ -393,6 +390,8 @@ TP.Game.prototype = {
         
         // physics!!
         game.physics.arcade.collide(player, ground);
+        game.physics.arcade.collide(game.healthPacksGroup, ground);
+        game.physics.arcade.overlap(game.healthPacksGroup, player, this.healPlayer);
         
         /*** Movement ***/
         
@@ -554,10 +553,43 @@ TP.Game.prototype = {
             game.physics.arcade.overlap(game.enemyGroup, player, this.damagePlayer);
             game.physics.arcade.overlap(player_weapon.bullets, game.enemyGroup, this.damageEnemy, null, this);
         };
+        
+        // check if there are any enemies alive
+        if (game.enemyGroup.countLiving()  > 0){
+            
+            // Q is only able to be used when there is an enemy close enough
+            // Q will always target the closest enemy
+            
+            closestEnemy = game.enemyGroup.getClosestTo(player);
+
+            distanceToEnemy = game.physics.arcade.distanceBetween(player, closestEnemy);
+
+            checkQ();
+
+            // check whether the player is able to use their Q or not
+            function checkQ(){
+
+                // if they are close enough, the player can fire Q
+                if (distanceToEnemy <= 400) {
+
+                    game.Q_Enabled = true;
+
+                } else {
+
+                    game.Q_Enabled = false;
+                }
+            }
+            
+        } else {
+            game.Q_Enabled = false;
+            // if there are still bullets in flight when all enemies are dead... kill them
+            player_weapon.killAll();
+        };
                 
     },
     // if a player gets damaged, take away a life. if they're too hurt... game over!
     damagePlayer: function(player, enemy){
+        
         // if the player's health is within certain parameters
         if ((player.health > 10 && player.health <= 100) && player.invincible == false) {
 
@@ -565,7 +597,6 @@ TP.Game.prototype = {
             switch (enemy.key) {
                 case "enemy_test":
                     player.damage(10);
-                    console.log(player.health);
                     toggleInvincible();
                     knockBack();
                     game.time.events.add(2000, toggleInvincible, this);
@@ -579,6 +610,7 @@ TP.Game.prototype = {
             // crop the health bar 
             cropRect = new Phaser.Rectangle(0, 0, ((player.health / player.maxHealth) * 100), 29);
             player_healthBar.crop(cropRect, false);
+        
         };
         
         // function that knocks you back from your enemy
@@ -603,24 +635,33 @@ TP.Game.prototype = {
         
     },
     
+    // chance for an enemy to drop a health pack will grow the lower the player's health is
+    genHealthPack: function(enemy){
+        
+        this.healthDropChance = 100 - ((player.health) - HEALTH_DROP_MODIFIER);
+        
+        console.log('healthDropChance: '+this.healthDropChance);
+        
+        // roll to determine whether a health pack is generated - chance based on player health
+        if (Phaser.Utils.chanceRoll(this.healthDropChance)){
+            
+            healthPack = new healthPacks(game, enemy.x, enemy.y);
+            healthPack.body.velocity.y = -400;
+            
+        }
+        
+    },
+    
     // if a player gets healed, add life.
     healPlayer: function(player, healPack){
         
         if (player.health > 0 && player.health < 100 ){
             
-            // apply the heal according to heal pack
-            switch (healPack.key){
-                    
-                case "heal_test": 
-                    player.heal(10);
-                    break;
-                    
-                default: 
-                    player.heal(0);
-                    break;
-            };
+            // apply the heal and kill the health pack
+            player.heal(10);
+            healPack.destroy();
     
-            console.log(player.health);
+            console.log('health: '+player.health);
             
             // reduce the crop on the health bar
             cropRect = new Phaser.Rectangle(0,0,((player.health / player.maxHealth) * 100), 29);   
@@ -631,16 +672,17 @@ TP.Game.prototype = {
     // damage the enemy
     damageEnemy: function(bullet, enemy){
         
-        // if the player's health is within certain parameters
-        if (enemy.health > 0 && enemy.health <= 10) {
+        // when an enemy is killed, run the health pack generating function
+        enemy.events.onKilled.add(this.genHealthPack, this);
+        
+        // just to be safe, make sure enemy health is above 0 before damaging
+        if (enemy.health > 0) {
 
                 // apply the damage according to the enemy
                 enemy.damage(5);
                 // destroy the bullet on-hit
                 bullet.kill();
-                console.log(enemy.health);
-
-            };
+        };
         
     }
 
