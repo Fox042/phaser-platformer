@@ -233,6 +233,7 @@ TP.Game.prototype = {
         // add player pet (the hextech scout companion)
         player_pet = game.add.sprite(-80,704, 'player_pet');
         player_pet.anchor.set(0.5,0.5);
+        player_pet.animations.add('glow', [0, 1, 2, 3, 4], 8, true);
         
         game.physics.enable(player, Phaser.Physics.ARCADE);
         game.physics.enable(player_pet, Phaser.Physics.ARCADE);
@@ -257,7 +258,7 @@ TP.Game.prototype = {
         // add the bullets, that will be killed once they exceed a certain distance
         player_weapon = game.add.weapon(10, 'testBullet');
         player_weapon.bulletKillType = Phaser.Weapon.KILL_DISTANCE;
-        player_weapon.bulletKillDistance = 402;
+        player_weapon.bulletKillDistance = 450;
 
         //  The speed at which the bullets are fired
         player_weapon.bulletSpeed = 800;
@@ -433,6 +434,8 @@ TP.Game.prototype = {
     
     /****** Player_Pet attachment and movement ******/
     playerPetMove: function(){
+        
+        player_pet.animations.play('glow');
         
         // we want the player_pet to go to a position just to the side of the player
         playerOrbitRight = {
