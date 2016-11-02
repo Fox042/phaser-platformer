@@ -189,7 +189,7 @@ TP.Game.prototype = {
         };
         
         function pauseExit(){
-          console.log('Return to menu');  
+          console.log('Return to menu');
         };
         
         // add everything to the pausedGroup
@@ -228,12 +228,25 @@ TP.Game.prototype = {
     /****** PLAYER ******/
     initPlayer: function() {
         
-        /*** add player's sprite, physics, collision etc ***/
+        /*** PLAYER AND PLAYER_PET ***/
+        
+        // add player
         player = game.add.sprite(10, 704, 'player');
+        // add player animations
+        player.animations.add('idle', [0, 1, 2, 3], 6, true);
+        
         // add player pet (the hextech scout companion)
         player_pet = game.add.sprite(-80,704, 'player_pet');
+        player_pet.smoothed = false;
         player_pet.anchor.set(0.5,0.5);
-        player_pet.animations.add('glow', [0, 1, 2, 3, 4], 8, true);
+        
+        // player_pet animations
+        player_pet.animations.add('glow', [0, 1, 2, 3, 4], 6, true);
+        
+        player_pet_hover = game.make.sprite(-16, 18, 'player_pet_hover');
+        player_pet_hover.animations.add('loop', [0, 1, 2, 3], 10, true);
+        
+        player_pet.addChild(player_pet_hover);
         
         game.physics.enable(player, Phaser.Physics.ARCADE);
         game.physics.enable(player_pet, Phaser.Physics.ARCADE);
@@ -371,20 +384,19 @@ TP.Game.prototype = {
     togglePause: function(){
 
         // toggle physics and UIs
-        if (!game.physics.arcade.isPaused){
-            game.physics.arcade.isPaused = true;
-            game.playerUIGroup.visible = false;
-            game.gamePausedGroup.visible = true;
-            // also disable movement input
-            this.pauseState = true;
-            // and make sure the pause menu UI is in front of everything else
-            game.world.bringToTop(game.gamePausedGroup);
-        } else {
-            game.physics.arcade.isPaused = false;
-            game.playerUIGroup.visible = true;
-            game.gamePausedGroup.visible = false;
-            this.pauseState = false;
-        }
+        game.physics.arcade.isPaused = !game.physics.arcade.isPaused;
+        game.playerUIGroup.visible = !game.playerUIGroup.visible;
+        game.gamePausedGroup.visible = !game.gamePausedGroup.visible;
+        
+        // also disable movement input
+        this.pauseState = !this.pauseState;
+        // & pause animations
+        player.animations.paused = !player.animations.paused;
+        player_pet.animations.paused = !player_pet.animations.paused;
+        player_pet_hover.animations.paused = !player_pet_hover.animations.paused;
+        
+        // and make sure the pause menu UI is in front of everything else
+        game.world.bringToTop(game.gamePausedGroup);
     },
     /****** PLAYER *******/
     playerUpdate: function() {
@@ -396,8 +408,9 @@ TP.Game.prototype = {
         
         /*** Movement ***/
         
-        // by default the player is not moving
+        // by default the player is idle
 	    player.body.velocity.x = 0;
+        player.animations.play('idle');
         
         // if the game isn't paused, allow the player to move
         if (this.pauseState == false){
@@ -435,7 +448,9 @@ TP.Game.prototype = {
     /****** Player_Pet attachment and movement ******/
     playerPetMove: function(){
         
+        // player pet glow
         player_pet.animations.play('glow');
+        player_pet_hover.animations.play('loop');
         
         // we want the player_pet to go to a position just to the side of the player
         playerOrbitRight = {
