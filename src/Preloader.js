@@ -34,13 +34,14 @@ TP.Preloader.resources = {
         ['testBullet', 'img/bulletTest.png']
 	],
 	'spritesheet': [
-        ['player', 'img/spritesheets/player.png', 58, 77],
+        ['player', 'img/spritesheets/player.png', 58, 77, 4],
         ['player_pet', 'img/spritesheets/player_pet.png', 32, 32],
         ['player_pet_hover', 'img/spritesheets/player_pet_hover.png', 32, 33],
         ['player_icons', 'img/spritesheets/player_icons.png', 64, 64],
         ['healthPack', 'img/spritesheets/healthPack.png'],
         // enemies
         ['enemy_test', 'img/spritesheets/enemyTest.png', 64, 64],
+        ['enemy_bloblet', 'img/spritesheets/enemyBloblet.png', 33, 32],
         // pause menu
         ['button_pause', 'img/spritesheets/button_pause.png', 64, 64],
         ['button_resume', 'img/spritesheets/button_resume.png', 520, 40],

@@ -234,7 +234,7 @@ TP.Game.prototype = {
         player = game.add.sprite(10, 704, 'player');
         // add player animations
         player.animations.add('idle', [0, 1, 2, 3], 6, true);
-        
+
         // add player pet (the hextech scout companion)
         player_pet = game.add.sprite(-80,704, 'player_pet');
         player_pet.smoothed = false;
@@ -321,9 +321,9 @@ TP.Game.prototype = {
         game.enemyGroup = this.add.group();
 
         // create the test enemy object    
-        testEnemy = function (game, x, y) {
+        enemy_Bloblet = function (game, x, y) {
 
-            Phaser.Sprite.call(this, game, x, y, "enemy_test");
+            Phaser.Sprite.call(this, game, x, y, "enemy_bloblet");
 
             game.physics.enable(this, Phaser.Physics.ARCADE);
             game.slopes.enable(this);
@@ -331,7 +331,12 @@ TP.Game.prototype = {
             this.body.gravity.y = STANDARD_GRAVITY;
             this.body.bounce.x = 0.2;
             this.body.collideWorldBounds = true;
-            this.anchor.set(0.5,0.5);
+            
+            // adjust the collision box so the monster is resting on the ground
+            this.body.setSize(33, 31, 0 , -8);
+            
+            // idle monster
+            this.animations.add('idle', [0, 1, 2, 3, 4], 6, true);
             
             // health
             this.maxHealth = 10;
@@ -343,12 +348,12 @@ TP.Game.prototype = {
 
         };
 
-        testEnemy.prototype = Object.create(Phaser.Sprite.prototype);
-        testEnemy.prototype.constructor = testEnemy;
+        enemy_Bloblet.prototype = Object.create(Phaser.Sprite.prototype);
+        enemy_Bloblet.prototype.constructor = enemy_Bloblet;
 
         // create the actual enemies and add them to the enemy group
-        enemy_test = new testEnemy(game, 260, 704);
-        enemy_test2 = new testEnemy(game, 660, 704);
+        enemy_test = new enemy_Bloblet(game, 260, 724);
+        enemy_test2 = new enemy_Bloblet(game, 660, 724);
         
     },
     
@@ -377,8 +382,8 @@ TP.Game.prototype = {
     render: function() {
         game.debug.text(game.time.fps, 1240, 700, "#00ff00");
         game.debug.spriteInfo(player, 400, 32);
-        game.debug.spriteInfo(enemy_test, 32, 32);
-        game.debug.cameraInfo(game.camera, 32, 150);
+        game.debug.spriteInfo(player_pet, 32, 32);
+        //game.debug.cameraInfo(game.camera, 32, 150);
     },
     // pause menu function
     togglePause: function(){
@@ -394,6 +399,8 @@ TP.Game.prototype = {
         player.animations.paused = !player.animations.paused;
         player_pet.animations.paused = !player_pet.animations.paused;
         player_pet_hover.animations.paused = !player_pet_hover.animations.paused;
+        
+        game.enemyGroup.callAll('animations.paused', 'animations', 'true');
         
         // and make sure the pause menu UI is in front of everything else
         game.world.bringToTop(game.gamePausedGroup);
@@ -421,7 +428,7 @@ TP.Game.prototype = {
 
                 playerMoving = 'left';
 
-                //player.animations.play('left');
+                player.frame = 0;
             }
             else if (moveCursors.right.isDown )
             {
@@ -430,13 +437,14 @@ TP.Game.prototype = {
 
                 playerMoving = 'right';
 
-                //player.animations.play('right');
+                player.frame = 0;
             }
 
             //  Allow the player to jump if they are touching the ground.
             if (jumpBtn.isDown && player.body.touching.down)
             {
                 player.body.velocity.y = -750;
+                player.frame = 0;
             }
         }
         
@@ -565,6 +573,9 @@ TP.Game.prototype = {
     /****** ENEMY SECTION ******/
     enemyUpdate: function(){
         
+        // idle animations
+        game.enemyGroup.callAll('animations.play', 'animations', 'idle');
+        
         // physics!!
         if (this.pauseState == false){
             game.physics.arcade.collide(game.enemyGroup, ground);
@@ -613,7 +624,7 @@ TP.Game.prototype = {
 
             // apply the damage according to the enemy
             switch (enemy.key) {
-                case "enemy_test":
+                case "enemy_bloblet":
                     player.damage(10);
                     toggleInvincible();
                     knockBack();
