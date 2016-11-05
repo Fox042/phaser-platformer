@@ -342,6 +342,10 @@ TP.Game.prototype = {
             this.enemyAggressive = false;
             this.AGGRO_DISTANCE = 400;
             
+            // spawn coordinates
+            this.spawnX = x;
+            this.spawnY = y;
+            
             // health
             this.maxHealth = 10;
             this.health = 10;
@@ -356,8 +360,8 @@ TP.Game.prototype = {
         enemy_Bloblet.prototype.constructor = enemy_Bloblet;
 
         // create the actual enemies and add them to the enemy group
-        enemy_test = new enemy_Bloblet(game, 260, 724);
-        enemy_test2 = new enemy_Bloblet(game, 660, 724);
+        enemy_test = new enemy_Bloblet(game, 260, 744);
+        enemy_test2 = new enemy_Bloblet(game, 660, 744);
         
     },
     
@@ -386,7 +390,7 @@ TP.Game.prototype = {
     render: function() {
         game.debug.text(game.time.fps, 1240, 700, "#00ff00");
         game.debug.spriteInfo(player, 400, 32);
-        game.debug.spriteInfo(player_pet, 32, 32);
+        game.debug.spriteInfo(enemy_test, 32, 32);
         //game.debug.cameraInfo(game.camera, 32, 150);
     },
     // pause menu function
@@ -583,6 +587,7 @@ TP.Game.prototype = {
         // physics!!
         if (this.pauseState == false){
             game.physics.arcade.collide(game.enemyGroup, ground);
+            game.physics.arcade.collide(game.enemyGroup, game.enemyGroup);
             game.physics.arcade.overlap(game.enemyGroup, player, this.damagePlayer);
             game.physics.arcade.overlap(player_weapon.bullets, game.enemyGroup, this.damageEnemy, null, this);
         };
@@ -627,26 +632,41 @@ TP.Game.prototype = {
                     if (distanceToPlayer <= enemy.AGGRO_DISTANCE && enemy.enemyAggressive == false){
 
                         enemy.enemyAggressive = true;
-                        enemy.alpha = 0.5;
+                        enemy.tint = '0xFF0000';
 
                     } else if (distanceToPlayer > enemy.AGGRO_DISTANCE && enemy.enemyAggressive == true) {
 
                         enemy.enemyAggressive = false;
-                        enemy.alpha = 1;
+                        enemy.body.velocity.x = 0;
+                        enemy.tint = '0xFFFFFF';
                     }
                 }
 
                 /** now call the specific enemy aggro functions **/
-                // well, maybe tomorrow :P
                 game.enemyGroup.forEach(aggroPlayer, this, true);
 
-                function aggroPlayer(enemy){
+                function aggroPlayer(enemy){ 
+                    
+                    // if enemy is aggressive
                     if (enemy.enemyAggressive == true){
+                        
+                        // switch to determine enemy type
                         switch (enemy.key){
                             case 'enemy_bloblet':
-                                console.log('angry blob');
+                                // bloblets will move towards the player
+                                game.physics.arcade.moveToXY(enemy, player.body.x + 12, enemy.spawnY + 18, 100);
                                 break;
                         }
+                    } else {
+                        
+                        // switch to determine enemy type
+                        switch (enemy.key){
+                            case 'enemy_bloblet':
+                                // bloblets will return to spawn
+                                game.physics.arcade.moveToXY(enemy, enemy.spawnX, enemy.spawnY + 18, 150);
+                                break;
+                        }
+                        
                     }
                 };
             }
