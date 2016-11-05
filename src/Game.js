@@ -338,6 +338,10 @@ TP.Game.prototype = {
             // idle monster
             this.animations.add('idle', [0, 1, 2, 3, 4], 6, true);
             
+            // aggro variable and constant
+            this.enemyAggressive = false;
+            this.AGGRO_DISTANCE = 400;
+            
             // health
             this.maxHealth = 10;
             this.health = 10;
@@ -572,7 +576,7 @@ TP.Game.prototype = {
     
     /****** ENEMY SECTION ******/
     enemyUpdate: function(){
-        
+                
         // idle animations
         game.enemyGroup.callAll('animations.play', 'animations', 'idle');
         
@@ -583,17 +587,15 @@ TP.Game.prototype = {
             game.physics.arcade.overlap(player_weapon.bullets, game.enemyGroup, this.damageEnemy, null, this);
         };
         
-        // check if there are any enemies alive
-        if (game.enemyGroup.countLiving()  > 0){
-            
-            // Q is only able to be used when there is an enemy close enough
-            // Q will always target the closest enemy
+        if (game.enemyGroup.countLiving() > 0){
             
             closestEnemy = game.enemyGroup.getClosestTo(player);
 
-            distanceToEnemy = game.physics.arcade.distanceBetween(player, closestEnemy);
+            distanceToEnemy = game.physics.arcade.distanceBetween(player_pet, closestEnemy);
 
             checkQ();
+            
+            aggroEnemy();
 
             // check whether the player is able to use their Q or not
             function checkQ(){
@@ -609,13 +611,55 @@ TP.Game.prototype = {
                 }
             }
             
+            // check whether enemies are close enough to aggro
+            function aggroEnemy(){
+            
+                game.enemyGroup.forEach(activateAggro, this, true);
+
+                //
+                function activateAggro(enemy){
+
+                    // determine the distance from the enemy to the player
+                    distanceToPlayer = game.physics.arcade.distanceBetween(player, enemy);
+
+                    // if the player is within that specific enemy's AGGRO_DISTANCE & the enemy isn't already aggressive
+                    // then make the enemy aggressive
+                    if (distanceToPlayer <= enemy.AGGRO_DISTANCE && enemy.enemyAggressive == false){
+
+                        enemy.enemyAggressive = true;
+                        enemy.alpha = 0.5;
+
+                    } else if (distanceToPlayer > enemy.AGGRO_DISTANCE && enemy.enemyAggressive == true) {
+
+                        enemy.enemyAggressive = false;
+                        enemy.alpha = 1;
+                    }
+                }
+
+                /** now call the specific enemy aggro functions **/
+                // well, maybe tomorrow :P
+                game.enemyGroup.forEach(aggroPlayer, this, true);
+
+                function aggroPlayer(enemy){
+                    if (enemy.enemyAggressive == true){
+                        switch (enemy.key){
+                            case 'enemy_bloblet':
+                                console.log('angry blob');
+                                break;
+                        }
+                    }
+                };
+            }
+            
         } else {
             game.Q_Enabled = false;
             // if there are still bullets in flight when all enemies are dead... kill them
             player_weapon.killAll();
         };
+        
                 
     },
+    
     // if a player gets damaged, take away a life. if they're too hurt... game over!
     damagePlayer: function(player, enemy){
         
