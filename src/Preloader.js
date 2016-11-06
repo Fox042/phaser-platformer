@@ -35,7 +35,7 @@ TP.Preloader.resources = {
 	],
 	'spritesheet': [
         ['player', 'img/spritesheets/player.png', 58, 77, 4],
-        ['player_pet', 'img/spritesheets/player_pet.png', 32, 32],
+        ['player_pet', 'img/spritesheets/player_pet_2.png', 32, 34],
         ['player_pet_hover', 'img/spritesheets/player_pet_hover.png', 32, 33],
         ['player_icons', 'img/spritesheets/player_icons.png', 64, 64],
         ['healthPack', 'img/spritesheets/healthPack.png'],

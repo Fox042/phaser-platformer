@@ -174,9 +174,9 @@ TP.Game.prototype = {
         
         pauseTitleBtn = game.add.bitmapText(0,0, 'Upheaval', 'Pause Menu', 150).alignTo(pauseSFXBtn, Phaser.TOP_CENTER, 0, 80);
                 
-        pauseRestartBtn = game.add.button(0,0, 'button_restart', this.togglePause, this, 0, 1, 2, 1).alignTo(pauseResumeBtn, Phaser.BOTTOM_CENTER, 0, 80);
+        pauseRestartBtn = game.add.button(0,0, 'button_restart', pauseRestart, this, 0, 1, 2, 1).alignTo(pauseResumeBtn, Phaser.BOTTOM_CENTER, 0, 80);
         
-        pauseExitBtn = game.add.button(0,0, 'button_exit', this.togglePause, this, 0, 1, 2, 1).alignTo(pauseRestartBtn, Phaser.BOTTOM_CENTER, 0, 80);
+        pauseExitBtn = game.add.button(0,0, 'button_exit', pauseExit, this, 0, 1, 2, 1).alignTo(pauseRestartBtn, Phaser.BOTTOM_CENTER, 0, 80);
         
         /** pause menu functions **/
         
@@ -185,11 +185,11 @@ TP.Game.prototype = {
         };
         
         function pauseRestart(){
-          console.log('Restart Level');  
+          game.state.restart();
         };
         
         function pauseExit(){
-          console.log('Return to menu');
+          this.game.state.start('MainMenu');
         };
         
         // add everything to the pausedGroup
@@ -232,6 +232,7 @@ TP.Game.prototype = {
         
         // add player
         player = game.add.sprite(10, 704, 'player');
+        player.anchor.set(0.5,0.5);
         // add player animations
         player.animations.add('idle', [0, 1, 2, 3], 6, true);
 
@@ -243,10 +244,10 @@ TP.Game.prototype = {
         // player_pet animations
         player_pet.animations.add('glow', [0, 1, 2, 3, 4], 6, true);
         
-        player_pet_hover = game.make.sprite(-16, 18, 'player_pet_hover');
-        player_pet_hover.animations.add('loop', [0, 1, 2, 3], 10, true);
+        //player_pet_hover = game.make.sprite(-16, 18, 'player_pet_hover');
+        //player_pet_hover.animations.add('loop', [0, 1, 2, 3], 10, true);
         
-        player_pet.addChild(player_pet_hover);
+        //player_pet.addChild(player_pet_hover);
         
         game.physics.enable(player, Phaser.Physics.ARCADE);
         game.physics.enable(player_pet, Phaser.Physics.ARCADE);
@@ -264,7 +265,7 @@ TP.Game.prototype = {
         
         // implement health
         player.maxHealth = 100;
-        player.health = 50;
+        player.health = 100;
         
         // INITIALISE WEAPONS SYSTEM (but really) 
         
@@ -340,7 +341,7 @@ TP.Game.prototype = {
             
             // aggro variable and constant
             this.enemyAggressive = false;
-            this.AGGRO_DISTANCE = 400;
+            this.AGGRO_DISTANCE = 40;
             
             // spawn coordinates
             this.spawnX = x;
@@ -360,8 +361,9 @@ TP.Game.prototype = {
         enemy_Bloblet.prototype.constructor = enemy_Bloblet;
 
         // create the actual enemies and add them to the enemy group
-        enemy_test = new enemy_Bloblet(game, 260, 744);
-        enemy_test2 = new enemy_Bloblet(game, 660, 744);
+        bloblet1 = new enemy_Bloblet(game, 260, 744);
+        bloblet2 = new enemy_Bloblet(game, 660, 744);
+        bloblet3 = new enemy_Bloblet(game, 1060, 744);
         
     },
     
@@ -389,8 +391,8 @@ TP.Game.prototype = {
     // show fps
     render: function() {
         game.debug.text(game.time.fps, 1240, 700, "#00ff00");
-        game.debug.spriteInfo(player, 400, 32);
-        game.debug.spriteInfo(enemy_test, 32, 32);
+        game.debug.spriteInfo(player_pet, 400, 32);
+        game.debug.spriteInfo(player_pet, 32, 32);
         //game.debug.cameraInfo(game.camera, 32, 150);
     },
     // pause menu function
@@ -406,7 +408,7 @@ TP.Game.prototype = {
         // & pause animations
         player.animations.paused = !player.animations.paused;
         player_pet.animations.paused = !player_pet.animations.paused;
-        player_pet_hover.animations.paused = !player_pet_hover.animations.paused;
+        //player_pet_hover.animations.paused = !player_pet_hover.animations.paused;
         
         game.enemyGroup.callAll('animations.paused', 'animations', 'true');
         
@@ -466,19 +468,19 @@ TP.Game.prototype = {
         
         // player pet glow
         player_pet.animations.play('glow');
-        player_pet_hover.animations.play('loop');
+        //player_pet_hover.animations.play('loop');
         
         // we want the player_pet to go to a position just to the side of the player
         playerOrbitRight = {
             'type': 25,
-            'x': (Phaser.Math.ceilTo(player.x, 1) - 60),
-            'y': (Phaser.Math.ceilTo(player.y, 1) - 30),
+            'x': (Phaser.Math.ceilTo(player.x, 1) - 80),
+            'y': (Phaser.Math.ceilTo(player.y, 1) - 60),
         }
         // the position will change depending on which way the character is facing
         playerOrbitLeft = {
             'type': 25,
-            'x': (Phaser.Math.ceilTo(player.x, 1) + 84),
-            'y': (Phaser.Math.ceilTo(player.y, 1) - 30),
+            'x': (Phaser.Math.ceilTo(player.x, 1) + 70),
+            'y': (Phaser.Math.ceilTo(player.y, 1) - 60),
         }
         
         // round up player_pet position 
@@ -567,7 +569,6 @@ TP.Game.prototype = {
         // fire W
         function fireW(){
             console.log('w function');
-            console.log(player_weapon);
         }
         
         // fire E
@@ -619,7 +620,10 @@ TP.Game.prototype = {
             // check whether enemies are close enough to aggro
             function aggroEnemy(){
             
-                game.enemyGroup.forEach(activateAggro, this, true);
+                // don't check for aggro if the player is far from enemies
+                if (distanceToEnemy <= 800){
+                    game.enemyGroup.forEach(activateAggro, this, true);
+                }
 
                 //
                 function activateAggro(enemy){
@@ -637,7 +641,6 @@ TP.Game.prototype = {
                     } else if (distanceToPlayer > enemy.AGGRO_DISTANCE && enemy.enemyAggressive == true) {
 
                         enemy.enemyAggressive = false;
-                        enemy.body.velocity.x = 0;
                         enemy.tint = '0xFFFFFF';
                     }
                 }
@@ -733,8 +736,6 @@ TP.Game.prototype = {
         
         this.healthDropChance = 100 - ((player.health) - HEALTH_DROP_MODIFIER);
         
-        console.log('healthDropChance: '+this.healthDropChance);
-        
         // roll to determine whether a health pack is generated - chance based on player health
         if (Phaser.Utils.chanceRoll(this.healthDropChance)){
             
@@ -753,8 +754,6 @@ TP.Game.prototype = {
             // apply the heal and kill the health pack
             player.heal(10);
             healPack.destroy();
-    
-            console.log('health: '+player.health);
             
             // reduce the crop on the health bar
             cropRect = new Phaser.Rectangle(0,0,((player.health / player.maxHealth) * 100), 29);   
