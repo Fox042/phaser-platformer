@@ -5,8 +5,8 @@ TP.Game.prototype = {
         /** global variables **/
         this.pauseState = false;
         // abilities
-        this.Q_Unlocked = false;
         this.Q_Enabled = false;
+        this.E_Enabled = false;
         // player
         this.healthDropChance = 1;
         
@@ -51,6 +51,8 @@ TP.Game.prototype = {
         collisionMap = {
             2: 'FULL',
             3: 'FULL',
+            33: 'FULL',
+            34: 'FULL',
             4: 'HALF_BOTTOM_LEFT',
             5: 'HALF_BOTTOM_RIGHT',
             6: 'HALF_TOP_RIGHT',
@@ -80,7 +82,9 @@ TP.Game.prototype = {
         // exlude some tiles from collision
         collisionExcluded = [
             26, // grass blades
-            27  // grass blades
+            27, // grass blades
+            35, // corrupt grass blades
+            36, // corrupt grass blades
         ];
         
         map.setCollisionByExclusion(collisionExcluded, true, 'Tile Layer');
@@ -88,6 +92,9 @@ TP.Game.prototype = {
         // stop sprites from sliding down slopes:
         // Prefer the minimum Y offset globally
         game.slopes.solvers.sat.options.preferY = true;
+        
+        /*** corruption marker ***/
+        voidCorruption = game.add.sprite(1500, 704, 'testBullet');
         
     },
     
@@ -231,13 +238,13 @@ TP.Game.prototype = {
         /*** PLAYER AND PLAYER_PET ***/
         
         // add player
-        player = game.add.sprite(10, 704, 'player');
+        player = game.add.sprite(1000, 704, 'player');
         player.anchor.set(0.5,0.5);
         // add player animations
         player.animations.add('idle', [0, 1, 2, 3], 6, true);
 
         // add player pet (the hextech scout companion)
-        player_pet = game.add.sprite(-80,704, 'player_pet');
+        player_pet = game.add.sprite(920,704, 'player_pet');
         player_pet.smoothed = false;
         player_pet.anchor.set(0.5,0.5);
         
@@ -271,11 +278,11 @@ TP.Game.prototype = {
         
         // add the bullets, that will be killed once they exceed a certain distance
         player_weapon = game.add.weapon(10, 'testBullet');
-        player_weapon.bulletKillType = Phaser.Weapon.KILL_DISTANCE;
-        player_weapon.bulletKillDistance = 450;
+        player_weapon.bulletKillType = Phaser.Weapon.KILL_LIFESPAN;
+        player_weapon.bulletLifespan = 400;
 
         //  The speed at which the bullets are fired
-        player_weapon.bulletSpeed = 800;
+        player_weapon.bulletSpeed = 2000;
         player_weapon.fireRate = 100;
         
         // bullets are fired from the player_pet
@@ -341,7 +348,7 @@ TP.Game.prototype = {
             
             // aggro variable and constant
             this.enemyAggressive = false;
-            this.AGGRO_DISTANCE = 40;
+            this.AGGRO_DISTANCE = 350;
             
             // spawn coordinates
             this.spawnX = x;
@@ -362,8 +369,6 @@ TP.Game.prototype = {
 
         // create the actual enemies and add them to the enemy group
         bloblet1 = new enemy_Bloblet(game, 260, 744);
-        bloblet2 = new enemy_Bloblet(game, 660, 744);
-        bloblet3 = new enemy_Bloblet(game, 1060, 744);
         
     },
     
@@ -393,6 +398,7 @@ TP.Game.prototype = {
         game.debug.text(game.time.fps, 1240, 700, "#00ff00");
         game.debug.spriteInfo(player_pet, 400, 32);
         game.debug.spriteInfo(player_pet, 32, 32);
+        game.debug.spriteInfo(voidCorruption, game.camera.width - 400, 400);
         //game.debug.cameraInfo(game.camera, 32, 150);
     },
     // pause menu function
@@ -460,6 +466,25 @@ TP.Game.prototype = {
         
         // attach the pet to the player
         this.playerPetMove();
+        
+        // check whether the player can activate E
+        distanceToCorruption = game.physics.arcade.distanceBetween(player, voidCorruption);
+        
+        checkE();
+
+            // check whether the player is able to use their Q or not
+            function checkE(){
+
+                // if they are close enough, the player can fire Q
+                if (distanceToCorruption <= 160) {
+
+                    game.E_Enabled = true;
+
+                } else {
+
+                    game.E_Enabled = false;
+                }
+            }
 
     },
     
@@ -573,7 +598,18 @@ TP.Game.prototype = {
         
         // fire E
         function fireE(){
-            console.log('e function');
+            if (game.E_Enabled == true){
+                console.log('e function');
+                
+                // kill the source of the corruption
+                voidCorruption.kill();
+                
+                // replace corrupted tiles with normal tiles
+                map.replace(33, 2);
+                map.replace(34, 3);
+                map.replace(35, 26);
+                map.replace(36, 27);
+            }
         }
         
         
@@ -597,10 +633,9 @@ TP.Game.prototype = {
             
             closestEnemy = game.enemyGroup.getClosestTo(player);
 
-            distanceToEnemy = game.physics.arcade.distanceBetween(player_pet, closestEnemy);
+            distanceToEnemy = game.physics.arcade.distanceBetween(player, closestEnemy);
 
             checkQ();
-            
             aggroEnemy();
 
             // check whether the player is able to use their Q or not

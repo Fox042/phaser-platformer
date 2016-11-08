@@ -31,12 +31,12 @@ TP.Preloader.resources = {
         ['tiles', 'src/tilemaps/tiles.png', 64, 64],
         ['player_healthBar', 'img/player_healthBar.png', 101, 29],
         ['player_healthEmpty', 'img/player_healthEmpty.png', 101, 29],
-        ['testBullet', 'img/bulletTest2.png']
+        ['testBullet', 'img/bulletTest.png']
 	],
 	'spritesheet': [
         ['player', 'img/spritesheets/player.png', 58, 77, 4],
         ['player_pet', 'img/spritesheets/player_pet_2.png', 32, 34],
-        ['player_pet_hover', 'img/spritesheets/player_pet_hover.png', 32, 33],
+        //['player_pet_hover', 'img/spritesheets/player_pet_hover.png', 32, 33],
         ['player_icons', 'img/spritesheets/player_icons.png', 64, 64],
         ['healthPack', 'img/spritesheets/healthPack.png'],
         // enemies
