@@ -6,6 +6,7 @@ TP.Game.prototype = {
         this.pauseState = false;
         // abilities
         this.Q_Enabled = false;
+        this.W_Enabled = false;
         this.E_Enabled = false;
         // player
         this.healthDropChance = 1;
@@ -94,7 +95,27 @@ TP.Game.prototype = {
         game.slopes.solvers.sat.options.preferY = true;
         
         /*** corruption marker ***/
-        voidCorruption = game.add.sprite(1500, 704, 'testBullet');
+        voidCorruption = game.add.sprite(1850, 780, 'testBullet');
+        
+        // INITIALISE JUMP PACKS
+        
+        game.jumpPacksGroup = this.add.group();
+        
+        jumpPack = function (game, x, y) {
+
+            Phaser.Sprite.call(this, game, x, y, "testBullet");
+            this.anchor.set(0.5,0.5);
+            
+            // add to the health pack group
+            game.jumpPacksGroup.add(this); 
+
+        };
+
+        jumpPack.prototype = Object.create(Phaser.Sprite.prototype);
+        jumpPack.prototype.constructor = jumpPack;     
+        
+        jumpPack1 = new jumpPack(game, 1300, 680);
+        
         
     },
     
@@ -238,13 +259,13 @@ TP.Game.prototype = {
         /*** PLAYER AND PLAYER_PET ***/
         
         // add player
-        player = game.add.sprite(1000, 704, 'player');
+        player = game.add.sprite(80, 794, 'player');
         player.anchor.set(0.5,0.5);
         // add player animations
         player.animations.add('idle', [0, 1, 2, 3], 6, true);
 
         // add player pet (the hextech scout companion)
-        player_pet = game.add.sprite(920,704, 'player_pet');
+        player_pet = game.add.sprite(20, 794, 'player_pet');
         player_pet.smoothed = false;
         player_pet.anchor.set(0.5,0.5);
         
@@ -368,7 +389,7 @@ TP.Game.prototype = {
         enemy_Bloblet.prototype.constructor = enemy_Bloblet;
 
         // create the actual enemies and add them to the enemy group
-        bloblet1 = new enemy_Bloblet(game, 260, 744);
+        bloblet1 = new enemy_Bloblet(game, 800, 808);
         
     },
     
@@ -396,10 +417,9 @@ TP.Game.prototype = {
     // show fps
     render: function() {
         game.debug.text(game.time.fps, 1240, 700, "#00ff00");
-        game.debug.spriteInfo(player_pet, 400, 32);
-        game.debug.spriteInfo(player_pet, 32, 32);
-        game.debug.spriteInfo(voidCorruption, game.camera.width - 400, 400);
-        //game.debug.cameraInfo(game.camera, 32, 150);
+        game.debug.spriteInfo(bloblet1, 400, 32);
+        game.debug.spriteInfo(player, 32, 32);
+        //game.debug.spriteInfo(voidCorruption, game.camera.width - 400, 400);
     },
     // pause menu function
     togglePause: function(){
@@ -467,16 +487,44 @@ TP.Game.prototype = {
         // attach the pet to the player
         this.playerPetMove();
         
-        // check whether the player can activate E
-        distanceToCorruption = game.physics.arcade.distanceBetween(player, voidCorruption);
+        // check whether the player can activate W
+       if (game.jumpPacksGroup.countLiving() > 0){
+           
+           closestJumpPack = game.jumpPacksGroup.getClosestTo(player);
+
+            distanceToJumpPack = game.physics.arcade.distanceBetween(player, closestJumpPack);
         
-        checkE();
+            if (distanceToJumpPack < 80){
+                checkW();
+            }
+
+                function checkW(){
+
+                    distanceToJumpPackX = closestJumpPack.y - player.y;
+
+                    if (distanceToJumpPackX > -50 && distanceToJumpPackX < 50) {
+
+                        game.W_Enabled = true;
+
+                    } else {
+
+                        game.W_Enabled = false;
+                    }
+                }
+       };
+        
+        
+        // check whether the player can activate E
+        if (voidCorruption.exists == true){
+            distanceToCorruption = game.physics.arcade.distanceBetween(player, voidCorruption);
+
+            checkE();
 
             // check whether the player is able to use their Q or not
             function checkE(){
 
                 // if they are close enough, the player can fire Q
-                if (distanceToCorruption <= 160) {
+                if (distanceToCorruption <= 100) {
 
                     game.E_Enabled = true;
 
@@ -485,6 +533,7 @@ TP.Game.prototype = {
                     game.E_Enabled = false;
                 }
             }
+        }
 
     },
     
@@ -593,7 +642,9 @@ TP.Game.prototype = {
         
         // fire W
         function fireW(){
-            console.log('w function');
+            if (game.W_Enabled == true){
+                player.body.velocity.y = -900;
+            }
         }
         
         // fire E
