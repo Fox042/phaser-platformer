@@ -494,23 +494,28 @@ TP.Game.prototype = {
 
             distanceToJumpPack = game.physics.arcade.distanceBetween(player, closestJumpPack);
         
+           // only checkW() if this condition is met
+           // else keep W disabled
             if (distanceToJumpPack < 80){
                 checkW();
+            } else {
+                game.W_Enabled = false;
             }
 
-                function checkW(){
+           // the actual checkW()
+            function checkW(){
 
-                    distanceToJumpPackX = closestJumpPack.y - player.y;
+                distanceToJumpPackX = closestJumpPack.y - player.y;
 
-                    if (distanceToJumpPackX > -50 && distanceToJumpPackX < 50) {
+                if (distanceToJumpPackX > -50 && distanceToJumpPackX < 50) {
 
-                        game.W_Enabled = true;
+                    game.W_Enabled = true;
 
-                    } else {
+                } else {
 
-                        game.W_Enabled = false;
-                    }
+                    game.W_Enabled = false;
                 }
+            }
        };
         
         
