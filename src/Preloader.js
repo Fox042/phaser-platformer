@@ -31,7 +31,8 @@ TP.Preloader.resources = {
         ['tiles', 'src/tilemaps/tiles.png', 64, 64],
         ['player_healthBar', 'img/player_healthBar.png', 101, 29],
         ['player_healthEmpty', 'img/player_healthEmpty.png', 101, 29],
-        ['testBullet', 'img/bulletTest.png']
+        ['testBullet', 'img/bulletTest.png'],
+        ['spitterBullet', 'img/bulletTest.png']
 	],
 	'spritesheet': [
         ['player', 'img/spritesheets/player.png', 58, 77, 4],
@@ -42,6 +43,7 @@ TP.Preloader.resources = {
         // enemies
         ['enemy_test', 'img/spritesheets/enemyTest.png', 64, 64],
         ['enemy_bloblet', 'img/spritesheets/enemyBloblet.png', 33, 32],
+        ['enemy_spitter', 'img/spritesheets/enemyBloblet.png', 33, 32],
         // pause menu
         ['button_pause', 'img/spritesheets/button_pause.png', 64, 64],
         ['button_resume', 'img/spritesheets/button_resume.png', 520, 40],

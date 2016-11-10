@@ -116,7 +116,6 @@ TP.Game.prototype = {
         
         jumpPack1 = new jumpPack(game, 1300, 680);
         
-        
     },
     
         /****** UI ******/
@@ -349,7 +348,7 @@ TP.Game.prototype = {
         // enemy group
         game.enemyGroup = this.add.group();
 
-        // create the test enemy object    
+        // create the enemy bloblets  
         enemy_Bloblet = function (game, x, y) {
 
             Phaser.Sprite.call(this, game, x, y, "enemy_bloblet");
@@ -380,8 +379,7 @@ TP.Game.prototype = {
             this.health = 10;
             
             // add to the enemy group
-            game.enemyGroup.add(this);
-            
+            game.enemyGroup.add(this);       
 
         };
 
@@ -389,13 +387,61 @@ TP.Game.prototype = {
         enemy_Bloblet.prototype.constructor = enemy_Bloblet;
 
         // create the actual enemies and add them to the enemy group
-        bloblet1 = new enemy_Bloblet(game, 800, 808);
+        bloblet1 = new enemy_Bloblet(game, 1000, 808);
+        
+        /*** create the kog'maw-esque enemy ***/  
+        enemy_Spitter = function (game, x, y) {
+
+            Phaser.Sprite.call(this, game, x, y, "enemy_spitter");
+
+            game.physics.enable(this, Phaser.Physics.ARCADE);
+            game.slopes.enable(this);
+            this.enableBody = true;
+            this.body.gravity.y = STANDARD_GRAVITY;
+            this.body.bounce.x = 0.2;
+            this.body.collideWorldBounds = true;
+            
+            // adjust the collision box so the monster is resting on the ground
+            this.body.setSize(33, 31, 0 , -8);
+            
+            // idle monster
+            //this.animations.add('idle', [0, 1, 2, 3, 4], 6, true);
+            
+            // aggro variable and constant
+            this.enemyAggressive = false;
+            this.AGGRO_DISTANCE = 550;
+            
+            // health
+            this.maxHealth = 10;
+            this.health = 10;
+            
+            spitter_weapon = game.add.weapon(1, 'spitterBullet');
+            
+            spitter_weapon.bulletKillType = Phaser.Weapon.KILL_LIFESPAN;
+            spitter_weapon.bulletLifespan = 2000;
+
+            //  The speed at which the bullets are fired
+            spitter_weapon.bulletSpeed = 600;
+
+            // bullets are fired from the player_pet
+            spitter_weapon.trackSprite(this);
+            
+            // add to the enemy group
+            game.enemyGroup.add(this);
+            
+        };
+
+        enemy_Spitter.prototype = Object.create(Phaser.Sprite.prototype);
+        enemy_Spitter.prototype.constructor = enemy_Spitter;
+
+        // create the actual enemies and add them to the enemy group
+        spitter1 = new enemy_Spitter(game, 300, 808);
         
     },
     
     /****** UPDATE FUNCTION ******/
     update: function() {    
-        
+
         // update player and enemy
         this.playerUpdate();
         this.enemyUpdate();
@@ -417,7 +463,7 @@ TP.Game.prototype = {
     // show fps
     render: function() {
         game.debug.text(game.time.fps, 1240, 700, "#00ff00");
-        game.debug.spriteInfo(bloblet1, 400, 32);
+        //game.debug.spriteInfo(bloblet1, 400, 32);
         game.debug.spriteInfo(player, 32, 32);
         //game.debug.spriteInfo(voidCorruption, game.camera.width - 400, 400);
     },
@@ -681,6 +727,7 @@ TP.Game.prototype = {
         if (this.pauseState == false){
             game.physics.arcade.collide(game.enemyGroup, ground);
             game.physics.arcade.collide(game.enemyGroup, game.enemyGroup);
+            game.physics.arcade.overlap(spitter_weapon.bullets, player, this.damagePlayer);
             game.physics.arcade.overlap(game.enemyGroup, player, this.damagePlayer);
             game.physics.arcade.overlap(player_weapon.bullets, game.enemyGroup, this.damageEnemy, null, this);
         };
@@ -750,8 +797,15 @@ TP.Game.prototype = {
                                 // bloblets will move towards the player
                                 game.physics.arcade.moveToXY(enemy, player.body.x + 12, enemy.spawnY + 18, 100);
                                 break;
+                                
+                            case 'enemy_spitter':
+                                // spitter will fire at the player
+                                spitter_weapon.fireAtSprite(player);          
+                                break;
                         }
-                    } else {
+                    } 
+                    // when aggro is lost
+                    else {
                         
                         // switch to determine enemy type
                         switch (enemy.key){
@@ -784,6 +838,20 @@ TP.Game.prototype = {
             switch (enemy.key) {
                 case "enemy_bloblet":
                     player.damage(10);
+                    toggleInvincible();
+                    knockBack();
+                    game.time.events.add(2000, toggleInvincible, this);
+                    break;
+                    
+                case "enemy_spitter":
+                    player.damage(5);
+                    toggleInvincible();
+                    knockBack();
+                    game.time.events.add(2000, toggleInvincible, this);
+                    break;
+                    
+                case "spitterBullet":
+                    player.damage(20);
                     toggleInvincible();
                     knockBack();
                     game.time.events.add(2000, toggleInvincible, this);
