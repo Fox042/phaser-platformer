@@ -95,15 +95,23 @@ TP.Game.prototype = {
         game.slopes.solvers.sat.options.preferY = true;
         
         /*** corruption marker ***/
-        voidCorruption = game.add.sprite(1850, 780, 'testBullet');
-        
+        voidCorruption = game.add.emitter(1850, 760, 100);
+        voidCorruption.makeParticles('voidParticle');
+
+        voidCorruption.minParticleScale = 1;
+        voidCorruption.maxParticleScale = 3;
+        voidCorruption.gravity = 0;
+
+
+        voidCorruption.start(false, 1600, 5, 0);
+
         // INITIALISE JUMP PACKS
         
         game.jumpPacksGroup = this.add.group();
         
         jumpPack = function (game, x, y) {
 
-            Phaser.Sprite.call(this, game, x, y, "testBullet");
+            Phaser.Sprite.call(this, game, x, y, "jumpPack");
             this.anchor.set(0.5,0.5);
             
             // add to the health pack group
@@ -258,7 +266,7 @@ TP.Game.prototype = {
         /*** PLAYER AND PLAYER_PET ***/
         
         // add player
-        player = game.add.sprite(80, 794, 'player');
+        player = game.add.sprite(1500, 794, 'player');
         player.anchor.set(0.5,0.5);
         // add player animations
         player.animations.add('idle', [0, 1, 2, 3], 6, true);
@@ -705,6 +713,7 @@ TP.Game.prototype = {
                 
                 // kill the source of the corruption
                 voidCorruption.kill();
+                voidCorruption.destroy();
                 
                 // replace corrupted tiles with normal tiles
                 map.replace(33, 2);
@@ -722,7 +731,7 @@ TP.Game.prototype = {
                 
         // idle animations
         game.enemyGroup.callAll('animations.play', 'animations', 'idle');
-        
+    
         // physics!!
         if (this.pauseState == false){
             game.physics.arcade.collide(game.enemyGroup, ground);

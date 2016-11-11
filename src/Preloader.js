@@ -32,7 +32,10 @@ TP.Preloader.resources = {
         ['player_healthBar', 'img/player_healthBar.png', 101, 29],
         ['player_healthEmpty', 'img/player_healthEmpty.png', 101, 29],
         ['testBullet', 'img/bulletTest.png'],
-        ['spitterBullet', 'img/bulletTest.png']
+        ['spitterBullet', 'img/bulletTest.png'],
+        ['jumpPack', 'img/jumpPack.png'],
+        ['voidParticle', 'img/voidParticle.png']
+        
 	],
 	'spritesheet': [
         ['player', 'img/spritesheets/player.png', 58, 77, 4],
