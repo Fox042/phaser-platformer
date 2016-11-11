@@ -551,9 +551,9 @@ TP.Game.prototype = {
            // the actual checkW()
             function checkW(){
 
-                distanceToJumpPackX = closestJumpPack.y - player.y;
+                distanceToJumpPackY = closestJumpPack.y - player.y;
 
-                if (distanceToJumpPackX > -50 && distanceToJumpPackX < 50) {
+                if (distanceToJumpPackY > -30 && distanceToJumpPackY < 30) {
 
                     game.W_Enabled = true;
 
