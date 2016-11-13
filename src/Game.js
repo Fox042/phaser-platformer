@@ -123,6 +123,8 @@ TP.Game.prototype = {
         jumpPack.prototype.constructor = jumpPack;     
         
         jumpPack1 = new jumpPack(game, 1300, 680);
+        jumpPack2 = new jumpPack(game, 3600, 680);
+        jumpPack2 = new jumpPack(game, 3600, 480);
         
     },
     
@@ -266,7 +268,7 @@ TP.Game.prototype = {
         /*** PLAYER AND PLAYER_PET ***/
         
         // add player
-        player = game.add.sprite(1500, 794, 'player');
+        player = game.add.sprite(80, 794, 'player');
         player.anchor.set(0.5,0.5);
         // add player animations
         player.animations.add('idle', [0, 1, 2, 3], 6, true);
@@ -305,7 +307,7 @@ TP.Game.prototype = {
         // INITIALISE WEAPONS SYSTEM (but really) 
         
         // add the bullets, that will be killed once they exceed a certain distance
-        player_weapon = game.add.weapon(10, 'testBullet');
+        player_weapon = game.add.weapon(3, 'testBullet');
         player_weapon.bulletKillType = Phaser.Weapon.KILL_LIFESPAN;
         player_weapon.bulletLifespan = 400;
 
@@ -396,6 +398,9 @@ TP.Game.prototype = {
 
         // create the actual enemies and add them to the enemy group
         bloblet1 = new enemy_Bloblet(game, 1000, 808);
+        bloblet2 = new enemy_Bloblet(game, 1750, 808);
+        bloblet3 = new enemy_Bloblet(game, 1800, 808);
+        bloblet4 = new enemy_Bloblet(game, 1850, 808);
         
         /*** create the kog'maw-esque enemy ***/  
         enemy_Spitter = function (game, x, y) {
@@ -417,7 +422,7 @@ TP.Game.prototype = {
             
             // aggro variable and constant
             this.enemyAggressive = false;
-            this.AGGRO_DISTANCE = 550;
+            this.AGGRO_DISTANCE = 450;
             
             // health
             this.maxHealth = 10;
